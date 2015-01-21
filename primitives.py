@@ -1,5 +1,6 @@
 # This file contains the primitives defined in 
 # the paper "Game-Theoretic Motion Planning for Multi-Robot Control"
+import random
 
 # Sample
 # Description:
@@ -8,6 +9,7 @@
 # Arguments:
 #   A = the set to sample from
 def sample(A):
+	return random.sample(A, 1)
 
 # Local Steering
 # Description:
@@ -17,6 +19,7 @@ def sample(A):
 #   x = initial state
 #   y = final state
 def steer(x, y):
+	return 
 
 # Nearest Neighbor
 # Description:
@@ -26,6 +29,7 @@ def steer(x, y):
 #   S = a finite set
 #   x = a state
 def nearest(S, x):
+	return
 
 # Near Vertices
 # Description:
@@ -36,6 +40,7 @@ def nearest(S, x):
 #   x = a state
 #   r = a positive real number
 def nearVertices(S, x, r):
+	return 
 
 # Path Generation
 # Description:
@@ -44,6 +49,7 @@ def nearVertices(S, x, r):
 # Arguments:
 #   G = a directed graph
 def pathGeneration(G):
+	return
 
 # Collision Check of Paths
 # Description:
@@ -53,6 +59,7 @@ def pathGeneration(G):
 #   p = a path
 #   pathSet = a set of paths
 def collisionFreePath(p, pathSet):
+	return
 
 # Feasible Paths
 # Description:
@@ -62,3 +69,4 @@ def collisionFreePath(p, pathSet):
 #   Ei = a set of paths
 #   Oi = a set of paths
 def feasible(Ei, Oi):
+	return
