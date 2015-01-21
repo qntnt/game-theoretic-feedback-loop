@@ -1,2 +1,7 @@
 # game-theoretic-feedback-loop
-This is to house game-theoretic motion planning experiments.
+This repo houses game-theoretic motion planning experiments.
+
+### \#TODO
+* Set up file structure
+* Import OMPL
+* Modify the RRT\* algorithm
