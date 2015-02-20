@@ -28,6 +28,10 @@ class State
   // State METHODS
   void drawState()
   {
-    ellipse(position.x, position.y,2,2);
+    ellipse(position.x, position.y,3,3);
+  }
+  String toString()
+  {
+    return "[ "+str(position.x)+", "+str(position.y)+"]";
   }
 }

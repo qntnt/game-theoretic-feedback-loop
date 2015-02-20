@@ -15,9 +15,9 @@ Graph extend(Graph prevGraph, State xrand)
       if (obstacleFree(xNearest, xNew))
       {
         if(edges[0] == null)
-          edges[0] = new Edge(xNearest, xNew);
+          edges[0] = new Edge(xNear, xNew);
         else
-          edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
+          edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
     }
   }
@@ -29,12 +29,12 @@ Graph extend(Graph prevGraph, State xrand)
 Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State goal)
 {
   Path[] paths = (Path[]) pathGeneration(graph);
-  Path[] feasiblePaths = null;
+  Path[] feasiblePaths = new Path[0];
   for(Path path : paths)
   {
     if(collisionFreePath(path, otherRobotPaths) && meetsPathConstraints(path))
     {
-      if(feasiblePaths == null)
+      if(feasiblePaths.length == 0)
       {
         feasiblePaths = new Path[1];
         feasiblePaths[0] = path;
@@ -42,19 +42,18 @@ Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State go
       else
         feasiblePaths = (Path[]) append(feasiblePaths, path);
     }
+    stroke(0,0,255);
+    path.drawPath();
   }
-  Path minPath = bestPath;
+  Path minPath = feasiblePaths[0];
   for(Path path : feasiblePaths)
   {
-    print("Entering pathCost(path)");
-    pathCost(path, goal);
-    print("Entering pathCost(path)");
-    pathCost(minPath, goal);
-    if (pathCost(path, goal) < pathCost(minPath, goal))
+    if (pathCost(path, goal) <= pathCost(minPath, goal))
     {
       minPath = path;
       break;
     }
   }
+  minPath.drawPath();
   return minPath;
 }

@@ -8,5 +8,11 @@ class Graph
     vertices = _vertices;
     edges = _edges;
   }
-  
+  void drawGraph()
+  {
+    for(Edge e : edges)
+    {
+      e.drawEdge();
+    }
+  }
 }

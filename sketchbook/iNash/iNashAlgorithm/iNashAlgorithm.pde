@@ -14,6 +14,14 @@ int k;
 int currentRobot = 0; // For goal checking
 color[] robotColors = new color[N];
 
+void keyPressed() {
+  final int k = keyCode;
+
+  if (k == ' ')
+    if (looping)  noLoop();
+    else          loop();
+}
+
 void setup()
 {
   size(381,457);
@@ -46,6 +54,14 @@ void iNash()
       graphs[i] = extend(graphs[i], xrand);
       vertices[i] = graphs[i].vertices;
       edges[i] =  graphs[i].edges;
+      
+      // Draw the root
+      fill(0,255,0);
+      vertices[i][0].drawState();
+      
+      // draw the graph
+      stroke(robotColors[currentRobot]);
+      graphs[currentRobot].drawGraph();
     }
     
     // Check if any robots have reached their goals
@@ -96,12 +112,14 @@ void iNash()
         }
         if(l > j)
         {
-          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], _bestPaths[l]);
+ 
         }
       }
       
       // Play the game for the current robot vs all other robots' bestPaths
       bestPaths[j] = betterResponse(graphs[j], otherRobotPaths[j], bestPaths[j], goals[j]);
+      stroke(0,255,255);
+      bestPaths[j].drawPath();
     }
   }
   k++;
@@ -113,21 +131,6 @@ void draw()
   iNash();
   for(int i=0; i<N; i++)
   {
-    fill(255,255,255);
-    stroke(0,0,0);
-    for(Edge edge : graphs[i].edges)
-    {
-      if(edge != null)
-      {
-        stroke(robotColors[i]);
-        edge.drawEdge();
-        
-      }
-      else
-      {
-        vertices[i][0].drawState();
-      }
-    }
     fill(255,0,0);
     stroke(255,0,0);
     goals[i].drawState();

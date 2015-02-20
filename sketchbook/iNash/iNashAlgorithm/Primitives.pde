@@ -8,14 +8,8 @@ State sample()
 }
 float pathCost(Path path, State goal)
 {
-  float cost = 0;
-  if(path.edges == null)
-    print("ERROR in pathCost: path.edges is NULL\n");
-  for(int i=0; i<path.edges.length; i++)
-  {
-    cost += edgeCost(path.edges[i], goal);
-  }
-  return cost;
+  
+  return path.edges.length;
 }
 float edgeCost(Edge edge, State goal)
 {
@@ -32,42 +26,54 @@ boolean meetsPathConstraints(Path path)
   //TODO
   return true;
 }
-Edge[] findChildEdges(State vertex, Edge[] edges)
+Edge[] findParentEdges(State vertex, Edge[] edges)
 {
-  Edge[] children = null;
+  Edge[] children = new Edge[0];
   for(Edge e : edges)
   {
-    if(vertex.position.equals(e.v1.position))
+    if(vertex.position.equals(e.v2.position))
     {
       if(children == null)
-        children = new Edge[0];
-      children = (Edge[]) append(children, e);
+      {
+        children = new Edge[1];
+        children[0] = e;
+      }
+      else
+      {
+        children = (Edge[]) append(children, e);
+      }
     }
   }
+  //print("# of parents: "+str(children.length)+"\n");
   return children;
 }
-State[] traceFromState(State x, Edge[] edges)
+Path[] traceFromState(State x, Edge[] edges)
 {
-  Edge[] children = findChildEdges(x, edges);
-  State[] leaves = null;
-  if(children == null)
+  //print("Entering traceFromState\n");
+  Edge[] parents = findParentEdges(x, edges);
+  Path[] paths = new Path[0];
+  if(parents.length == 0)
   {
-    leaves = new State[1];
-    leaves[0] = x;
-    return leaves;
+    paths = new Path[1];
+    paths[0] = new Path(edges[0].v1);
+    return paths;
   }
-  for (int i=0; i<children.length; i++)
+  for (int i=0; i<parents.length; i++)
   {
     if(i==0)
     {
-      leaves = traceFromState(children[i].v2, edges);
+      paths = traceFromState(parents[i].v1, edges);
+      paths[i].pushByEdge(parents[i]);
     }
     else
     {   
-      leaves = (State[]) concat(leaves, traceFromState(children[i].v2, edges));
+      Path[] newParents = traceFromState(parents[i].v1, edges);
+      paths = (Path[]) concat(paths, newParents);
+      paths[i].pushByEdge(parents[i]);
     }
   }
-  return leaves;
+  //print("Completed traceFromState\n");
+  return paths;
 }
 Path generatePath(State x, Edge[] edges)
 {
@@ -84,22 +90,29 @@ Path generatePath(State x, Edge[] edges)
         {
           path.pushByState(edge.v1);
           
+          x = edge.v1;
           // Check for parent
           hasParent = true;
         }
       }
     }
   }
-  path.checkPath();
   return path;
 }
 Path[] pathGeneration(Graph graph)
 {
   //Depth-first search
-  Path[] paths = null;
+  Path[] paths = traceFromState(goals[currentRobot], graph.edges);
+  print("# of paths: "+str(paths.length)+"\n");
+  return paths;
+  /*
   State[] leaves = traceFromState(graph.vertices[0], graph.edges);
   for(State leaf : leaves)
   {
+    // Draw the leaf
+    fill(robotColors[currentRobot]);
+    leaf.drawState();
+    
     if(paths == null)
     {
       paths = new Path[1];
@@ -110,7 +123,20 @@ Path[] pathGeneration(Graph graph)
       paths = (Path[]) append(paths, generatePath(leaf, graph.edges));
     }
   }
+  for(Path p : paths)
+  {
+    if(p != null)
+    {
+      fill(color(random(255),random(255),random(255)));
+      p.drawPath();
+    }
+    else
+    {
+      print("Path is null");
+    }
+  }
   return paths;
+  */
 }
 State nearest(State[] vertices, State xrand)
 {
@@ -173,5 +199,13 @@ boolean obstacleFree(State v1, State v2)
     return false;
   if(map.pixels[floor(v2.position.y)*width+floor(v2.position.x)] == color(0,0,0))
     return false;
+  for(State x : vertices[currentRobot])
+  {
+    if(x.position.equals(v2.position))
+    {
+      print("Attempted to extend to internal position\n");
+      return false;
+    }
+  }
   return true;
 }
