@@ -13,6 +13,7 @@ Path[][] otherRobotPaths = new Path[N][1];  //[robot][path#]
 int k;
 int currentRobot = 0; // For goal checking
 color[] robotColors = new color[N];
+float[] goalRadii = new float[N];
 
 void keyPressed() {
   final int k = keyCode;
@@ -35,6 +36,7 @@ void setup()
     bestPaths[i] = new Path();
     _bestPaths[i] = new Path();
     robotColors[i] = color(random(150),random(150),random(150));
+    goalRadii[i] = random(5)+3;
   }
   k=1;
 }
@@ -133,7 +135,7 @@ void draw()
   {
     fill(255,0,0);
     stroke(255,0,0);
-    goals[i].drawState();
+    ellipse(goals[i].position.x, goals[i].position.y, goalRadii[i], goalRadii[i]);
     text("Vertices: "+str(vertices[i].length), 0, 30*i);
   }
   text("Iteration: "+str(frame), 0, 15);
