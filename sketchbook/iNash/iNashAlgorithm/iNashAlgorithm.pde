@@ -26,8 +26,8 @@ void keyPressed() {
 void setup()
 {
   frameRate(10000);
-  size(381,457);
   map = loadImage("map1.png");
+  size(map.width,map.height);
   for (int i=0; i<N; i++)
   {
     vertices[i][0] = new State();

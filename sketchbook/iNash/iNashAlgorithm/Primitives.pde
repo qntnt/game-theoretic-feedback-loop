@@ -1,7 +1,7 @@
 State sample()
 {
   State s = new State(
-    new PVector(random(width), random(height)),
+    new PVector(random(map.width), random(map.height)),
     new PVector(random(2)-1, random(2)-1)
     );
   return s;
@@ -128,6 +128,8 @@ State steer(State x, State y)
     return goals[currentRobot];
   float dt = 10;
   State[] outcomes = dynamics( x, y, dt);
+  if(outcomes.length == 0)
+    return null;
   State optimalY = outcomes[0];
   for(State outcome : outcomes)
   {
@@ -140,14 +142,30 @@ State steer(State x, State y)
 }
 State[] dynamics(State x, State u, float dt)
 {
+  //Dubin's car
+  int resultNum = 10;
+  State[] results = new State[0];
+  float velocity = 1;
+  float theta = x.rotation.heading();
+  float turnRadius = PI/8;
+  for(int i=0; i<resultNum; i++)
+  {
+    float temp = theta - turnRadius + (i*turnRadius*2/resultNum);
+    State tempState = new State(x.position.get(), x.rotation.get());
+    tempState.rotation = PVector.fromAngle(temp);
+    tempState.rotation.setMag(velocity*dt);
+    tempState.position.add(tempState.rotation);
+    if(obstacleFree(x, tempState))
+      results = (State[]) append(results, tempState);
+  }
   //TODO apply dynamics to steer()
-  PVector direction = PVector.sub(u.position, x.position);
+  /*PVector direction = PVector.sub(u.position, x.position);
   direction.normalize();
   direction.setMag(dt);
   State steered = new State();
   steered.position = PVector.add(x.position, direction);
-  State[] result = {steered};
-  return result;
+  State[] result = {steered};*/
+  return results;
 }
 State[] nearVertices(State[] vertices, State x, float r)
 {
@@ -169,18 +187,11 @@ State[] nearVertices(State[] vertices, State x, float r)
 }
 boolean obstacleFree(State v1, State v2)
 {
-  
-  if(floor(v2.position.y)*map.width+floor(v2.position.x) >= map.width*map.height)
+  if(int(v2.position.y)*width+int(v2.position.x) >= width*height)
     return false;
-  if(map.pixels[floor(v2.position.y)*map.width+floor(v2.position.x)] == color(0,0,0))
+  loadPixels();
+  //TODO check the path between the points
+  if(map.pixels[int(v2.position.y)*width+int(v2.position.x)] == color(0,0,0))
     return false;
-  for(State x : vertices[currentRobot])
-  {
-    if(x.position.equals(v2.position))
-    {
-      print("Attempted to extend to internal position\n");
-      return false;
-    }
-  }
   return true;
 }

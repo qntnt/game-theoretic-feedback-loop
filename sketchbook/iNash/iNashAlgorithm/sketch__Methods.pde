@@ -4,16 +4,16 @@ Graph extend(Graph prevGraph, State xrand)
   Edge[] edges = prevGraph.edges;
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
-  //edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
   if (obstacleFree(xNearest, xNew))
   {
     State[] Xnear = nearVertices(vertices, xNew, 15); //r = 15
     vertices = (State[]) append(vertices, xNew);
+    edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
     if( Xnear == null)
       return prevGraph;
     for (State xNear : Xnear)
     {
-      if (obstacleFree(xNearest, xNew))
+      if (obstacleFree(xNear, xNew))
       {
         edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
