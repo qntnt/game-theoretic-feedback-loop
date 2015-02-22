@@ -16,7 +16,10 @@ class Edge
     stroke(255,0,0);
     line(halfway.x, halfway.y, v2.position.x, v2.position.y);
     stroke(robotColors[currentRobot]);
-    v1.drawState();
-    v2.drawState();
+  }
+  
+  float cost()
+  {
+    return PVector.dist(v2.position, v1.position);
   }
 }

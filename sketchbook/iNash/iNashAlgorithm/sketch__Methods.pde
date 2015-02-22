@@ -4,6 +4,7 @@ Graph extend(Graph prevGraph, State xrand)
   Edge[] edges = prevGraph.edges;
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
+  //edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
   if (obstacleFree(xNearest, xNew))
   {
     State[] Xnear = nearVertices(vertices, xNew, 15); //r = 15
@@ -14,10 +15,7 @@ Graph extend(Graph prevGraph, State xrand)
     {
       if (obstacleFree(xNearest, xNew))
       {
-        if(edges[0] == null)
-          edges[0] = new Edge(xNear, xNew);
-        else
-          edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+        edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
     }
   }
@@ -42,13 +40,11 @@ Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State go
       else
         feasiblePaths = (Path[]) append(feasiblePaths, path);
     }
-    stroke(0,0,255);
-    path.drawPath();
   }
   Path minPath = feasiblePaths[0];
   for(Path path : feasiblePaths)
   {
-    if (pathCost(path, goal) <= pathCost(minPath, goal))
+    if (pathCost(path, goal) < pathCost(minPath, goal))
     {
       minPath = path;
       break;

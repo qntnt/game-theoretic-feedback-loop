@@ -1,5 +1,5 @@
 final int N = 1;
-final int K = 2000;
+final int K = 200000;
 int frame = 0;
 PImage map;
 State[][] vertices = new State[N][1];  //[robot][vertex#]
@@ -25,18 +25,19 @@ void keyPressed() {
 
 void setup()
 {
+  frameRate(10000);
   size(381,457);
   map = loadImage("map1.png");
   for (int i=0; i<N; i++)
   {
     vertices[i][0] = new State();
-    edges[i][0] = null;
+    edges[i] = new Edge[0];
     graphs[i] = new Graph(vertices[i], edges[i]);
     goals[i] = new State();
     bestPaths[i] = new Path();
     _bestPaths[i] = new Path();
-    robotColors[i] = color(random(150),random(150),random(150));
-    goalRadii[i] = random(5)+3;
+    robotColors[i] = color(random(150),random(150),random(150),70);
+    goalRadii[i] = random(5)+15;
   }
   k=1;
 }
@@ -59,11 +60,15 @@ void iNash()
       
       // Draw the root
       fill(0,255,0);
+      stroke(0,255,0);
       vertices[i][0].drawState();
       
       // draw the graph
-      stroke(robotColors[currentRobot]);
-      graphs[currentRobot].drawGraph();
+      if(graphs[currentRobot].edges.length != 0)
+      {
+        stroke(robotColors[currentRobot]);
+        //graphs[currentRobot].drawGraph();
+      }
     }
     
     // Check if any robots have reached their goals
@@ -120,8 +125,6 @@ void iNash()
       
       // Play the game for the current robot vs all other robots' bestPaths
       bestPaths[j] = betterResponse(graphs[j], otherRobotPaths[j], bestPaths[j], goals[j]);
-      stroke(0,255,255);
-      bestPaths[j].drawPath();
     }
   }
   k++;
@@ -130,15 +133,17 @@ void iNash()
 void draw()
 {
   background(map);
-  iNash();
   for(int i=0; i<N; i++)
   {
     fill(255,0,0);
     stroke(255,0,0);
     ellipse(goals[i].position.x, goals[i].position.y, goalRadii[i], goalRadii[i]);
-    text("Vertices: "+str(vertices[i].length), 0, 30*i);
+    text(str(i)+") vertices: "+str(vertices[i].length), 0, 45+30*i);
   }
+  iNash();
+  fill(0,255,0);
+  stroke(0,255,0);
   text("Iteration: "+str(frame), 0, 15);
-  text("Finished robots: "+str(finishedRobots.length), 0, 45);
+  text("Finished robots: "+str(finishedRobots.length), 0, 30);
   frame++;
 }

@@ -47,62 +47,36 @@ Edge[] findParentEdges(State vertex, Edge[] edges)
   //print("# of parents: "+str(children.length)+"\n");
   return children;
 }
-Path[] traceFromState(State x, Edge[] edges)
+Path[] goalPaths(State x, Edge[] edges, Path[] paths, int index)
 {
-  //print("Entering traceFromState\n");
   Edge[] parents = findParentEdges(x, edges);
-  Path[] paths = new Path[0];
   if(parents.length == 0)
   {
-    paths = new Path[1];
-    paths[0] = new Path(edges[0].v1);
+    paths[index].pushByState(x);
     return paths;
   }
-  for (int i=0; i<parents.length; i++)
+  for(int i=0; i<parents.length; i++)
   {
     if(i==0)
     {
-      paths = traceFromState(parents[i].v1, edges);
-      paths[i].pushByEdge(parents[i]);
+      paths[index].pushByEdge(parents[i]);
+      paths = goalPaths(parents[i].v1, edges, paths, index);
     }
     else
-    {   
-      Path[] newParents = traceFromState(parents[i].v1, edges);
-      paths = (Path[]) concat(paths, newParents);
-      paths[i].pushByEdge(parents[i]);
-    }
-  }
-  //print("Completed traceFromState\n");
-  return paths;
-}
-Path generatePath(State x, Edge[] edges)
-{
-  Path path = new Path();
-  boolean hasParent = true;
-  while(hasParent)
-  {
-    hasParent = false;
-    for(Edge edge : edges)
     {
-      if(edge != null)
-      {
-        if(edge.v2.position.equals(x))
-        {
-          path.pushByState(edge.v1);
-          
-          x = edge.v1;
-          // Check for parent
-          hasParent = true;
-        }
-      }
+      paths = (Path[]) append(paths, paths[index]);
+      paths[paths.length-1].pushByEdge(parents[i]);
+      paths = goalPaths(parents[i].v1, edges, paths, paths.length-1);
     }
   }
-  return path;
+  return paths;
 }
 Path[] pathGeneration(Graph graph)
 {
   //Depth-first search
-  Path[] paths = traceFromState(goals[currentRobot], graph.edges);
+  Path[] paths = new Path[1];
+  paths[0] = new Path(goals[currentRobot]);
+  paths = goalPaths(goals[currentRobot], graph.edges, paths, 0); 
   print("# of paths: "+str(paths.length)+"\n");
   return paths;
   /*
