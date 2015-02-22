@@ -8,12 +8,12 @@ class State
   // State CONSTRUCTORS
   State()
   {
-    position = new PVector(random(width), random(height));
+    position = new PVector(random(map.width), random(map.height));
     rotation = new PVector(random(2)-1, random(2)-1);
     velocity = new PVector(0,0);
-    while(map.pixels[int(position.y)*width+int(position.x)] == color(0,0,0))
+    while(map.pixels[int(position.y)*map.width+int(position.x)] == color(0,0,0))
     {
-      position = new PVector(random(width), random(height));
+      position = new PVector(random(map.width), random(map.height));
       rotation = new PVector(random(2)-1, random(2)-1);
       velocity = new PVector(0,0);
     }

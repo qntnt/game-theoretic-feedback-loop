@@ -67,7 +67,7 @@ void iNash()
       if(graphs[currentRobot].edges.length != 0)
       {
         stroke(robotColors[currentRobot]);
-        //graphs[currentRobot].drawGraph();
+        graphs[currentRobot].drawGraph();
       }
     }
     

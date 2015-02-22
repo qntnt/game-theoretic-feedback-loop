@@ -124,6 +124,8 @@ State nearest(State[] vertices, State xrand)
 }
 State steer(State x, State y)
 {
+  if(PVector.dist(x.position, goals[currentRobot].position) <= goalRadii[currentRobot])
+    return goals[currentRobot];
   float dt = 10;
   State[] outcomes = dynamics( x, y, dt);
   State optimalY = outcomes[0];
@@ -134,8 +136,6 @@ State steer(State x, State y)
       optimalY = outcome;
     }
   }
-  if(PVector.dist(x.position, goals[currentRobot].position) <= dt)
-    return goals[currentRobot];
   return optimalY;
 }
 State[] dynamics(State x, State u, float dt)
@@ -169,9 +169,10 @@ State[] nearVertices(State[] vertices, State x, float r)
 }
 boolean obstacleFree(State v1, State v2)
 {
-  if(map.pixels[floor(v1.position.y)*width+floor(v1.position.x)] == color(0,0,0))
+  
+  if(floor(v2.position.y)*map.width+floor(v2.position.x) >= map.width*map.height)
     return false;
-  if(map.pixels[floor(v2.position.y)*width+floor(v2.position.x)] == color(0,0,0))
+  if(map.pixels[floor(v2.position.y)*map.width+floor(v2.position.x)] == color(0,0,0))
     return false;
   for(State x : vertices[currentRobot])
   {
