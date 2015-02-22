@@ -187,7 +187,11 @@ State[] nearVertices(State[] vertices, State x, float r)
 }
 boolean obstacleFree(State v1, State v2)
 {
+  if(v2 == null || v1 == null)
+    return false;
   if(int(v2.position.y)*width+int(v2.position.x) >= width*height)
+    return false;
+  if(int(v2.position.y)*width+int(v2.position.x) < 0)
     return false;
   loadPixels();
   //TODO check the path between the points
