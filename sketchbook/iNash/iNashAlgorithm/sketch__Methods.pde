@@ -6,25 +6,27 @@ Graph extend(Graph prevGraph, State xrand)
   arrayCopy(prevGraph.edges, edges);
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
+  if(xNearest == null)
+    DEBOUT("xNearest is unset");
+  if(xNew == null)
+    DEBOUT("xNew is unset");
   if (obstacleFree(xNearest, xNew))
   {
     State[] Xnear = nearVertices(vertices, xNew, 15); //r = 15
     vertices = (State[]) append(vertices, xNew);
     edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
-    if( Xnear.length == 0)
-      return prevGraph;
     for (State xNear : Xnear)
     {
+      if(xNear.position == null)
+        DEBOUT("Some xNear is unset");
       if (obstacleFree(xNear, xNew))
       {
         //edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
     }
   }
-  for(Edge e : edges)
-    if(e == null)
-      print("ERROR in extend(): edge is null");
-  return new Graph(vertices, edges);
+  Graph ret = new Graph(vertices, edges);
+  return ret;
 }
 Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State goal)
 {

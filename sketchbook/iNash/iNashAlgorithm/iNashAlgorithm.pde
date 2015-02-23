@@ -1,35 +1,53 @@
-final int N = 4;
+final int N = 2;
 final int K = 200000;
 int frame = 0;
 PImage map;
-State[][] VERTICES = new State[N][1];  //[robot][vertex#]
-Edge[][] EDGES = new Edge[N][1];  //[robot][edge#]
-Graph[] GRAPHS = new Graph[N];  //[robot]
-State[] GOALS = new State[N];  //[robot]
-int[] finishedRobots = {};  //[finish_order]
-Path[] BEST_PATHS = new Path[N];  // Previous best paths [robot]
-Path[] _BEST_PATHS = new Path[N];  // Current best paths [robot]
-Path[][] otherRobotPaths = new Path[N][N];  //[robot][path#]
+State[][] VERTICES;  //[robot][vertex#]
+Edge[][] EDGES;  //[robot][edge#]
+Graph[] GRAPHS;  //[robot]
+State[] GOALS;  //[robot]
+int[] finishedRobots;  //[finish_order]
+Path[] BEST_PATHS;  // Previous best paths [robot]
+Path[] _BEST_PATHS;  // Current best paths [robot]
+Path[][] otherRobotPaths;  //[robot][path#]
 int k;
-int CURRENT_ROBOT = 0; // For goal checking
-color[] ROBOT_COLORS = new color[N];
-float[] GOAL_RADII = new float[N];
+int CURRENT_ROBOT; // For goal checking
+color[] ROBOT_COLORS;
+float[] GOAL_RADII;
 
-boolean DEBUG = true;
-boolean DRAW_GRAPH = true;
+boolean DEBUG = false;
+boolean DRAW_GRAPH = false;
+boolean DRAW_INFO = false;
+boolean DRAW_STATES = false;
 
 void DEBOUT(String s)
 {
   if(DEBUG)
-    print("("+minute()+"m"+second()+"s)\t"+s+"\n");
+    print("("+minute()+"m"+second()+"s)    "+s+"\n");
 }
 
 void keyPressed() {
   final int k = keyCode;
 
-  if (k == ' ')
+  if (k == 'P')
     if (looping)  noLoop();
     else          loop();
+  if(k == 'I')
+    DRAW_INFO = !DRAW_INFO;
+  if(k == 'G')
+  {
+    DRAW_GRAPH = !DRAW_GRAPH;
+    DRAW_STATES = false;
+  }
+  if(k == 'R')
+    setup();
+  if(k == 'S')
+  {
+    DRAW_STATES = !DRAW_STATES;
+    DRAW_GRAPH = false;
+  }
+  if(k == 'D')
+    DEBUG = !DEBUG;
 }
 
 void setup()
@@ -37,6 +55,19 @@ void setup()
   frameRate(10000);
   map = loadImage("map1.png");
   size(map.width,map.height);
+  
+  VERTICES = new State[N][1];
+  EDGES = new Edge[N][1];
+  GRAPHS = new Graph[N];
+  GOALS = new State[N];
+  finishedRobots = new int[0];
+  BEST_PATHS = new Path[N];
+  _BEST_PATHS = new Path[N];
+  otherRobotPaths = new Path[N][N];
+  k=0;
+  CURRENT_ROBOT = 0; 
+  ROBOT_COLORS = new color[N];
+  GOAL_RADII = new float[N];
   for (int i=0; i<N; i++)
   {
     VERTICES[i][0] = new State();
@@ -53,6 +84,8 @@ void setup()
 
 void iNash()
 {
+  DEBOUT("");
+  DEBOUT("=== STARTING iNASH ===");
   if (!(k >= K))
   {
     // Sample and extend all robots' graphs
@@ -63,16 +96,10 @@ void iNash()
       State xrand = sample(); 
       
       // extend() in sketch__Methods
-      GRAPHS[i] = extend(GRAPHS[i], xrand);
+      GRAPHS[i] = extend(GRAPHS[i].copy(), xrand);
       VERTICES[i] = GRAPHS[i].vertices;
       EDGES[i] =  GRAPHS[i].edges;
       
-      // draw the graph
-      if(GRAPHS[i].edges.length != 0 && DRAW_GRAPH)
-      {
-        stroke(ROBOT_COLORS[i]);
-        GRAPHS[i].drawGraph();
-      }
     }
     
     // Check if any robots have reached their GOALS
@@ -110,7 +137,6 @@ void iNash()
       // Substitute underscore for tilde
       _BEST_PATHS[i] = BEST_PATHS[i]; 
     }
-    
     // Play the game for the current robots best path against all other finishedRobots' best paths
     for(int j : finishedRobots)
     {
@@ -121,31 +147,28 @@ void iNash()
       {
         if(l < j)
         {
-          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l]);
+          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l].copy());
         }
         if(l > j)
         {
-          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l]);
+          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l].copy());
         }
       }
       
       // Play the game for the current robot vs all other robots' BEST_PATHS
       BEST_PATHS[j] = betterResponse(GRAPHS[j], otherRobotPaths[j], BEST_PATHS[j], GOALS[j]);
-      DEBOUT(str(j)+") path length: "+str(BEST_PATHS[j].edges.length));
-      stroke(0,0,255,100);
-      BEST_PATHS[j].drawPath();
+      DEBOUT(str(j)+") best path length: "+str(BEST_PATHS[j].edges.length));
     }
   }
   k++;
+  
 }
 
 void draw()
 {
   background(map);
   iNash();
-  fill(255,255,255,150);
-  stroke(255,255,255,150);
-  rect(0,0,200,50+75*N);
+  // Draw robots
   for(int i=0; i<N; i++)
   {
     fill(255,0,0);
@@ -153,17 +176,58 @@ void draw()
     ellipse(GOALS[i].position.x, GOALS[i].position.y, GOAL_RADII[i], GOAL_RADII[i]);
     fill(ROBOT_COLORS[i]);
     stroke(ROBOT_COLORS[i]);
-    text(str(i)+") location: "+VERTICES[i][0].toString(), 0, 45+75*i);
-    text("    vertices: "+str(VERTICES[i].length), 0, 60+75*i);
-    text("    edges: "+str(VERTICES[i].length), 0, 75+75*i);
-    text("    path length: "+str(BEST_PATHS[i].vertices.length), 0, 90+75*i);
-    text("    goal: "+GOALS[i].toString(), 0, 105+75*i);
-    VERTICES[i][0].drawState();
-    text("("+str(i)+")",VERTICES[i][0].position.x+5, VERTICES[i][0].position.y);
+    ellipse(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 6, 6);
+    stroke(0);
+    strokeWeight(2);
+    line(VERTICES[i][0].position.x, VERTICES[i][0].position.y,
+      PVector.add(VERTICES[i][0].position,
+        PVector.mult(VERTICES[i][0].rotation, 6)).x, 
+      PVector.add(VERTICES[i][0].position,
+        PVector.mult(VERTICES[i][0].rotation, 6)).y);
+    stroke(color((ROBOT_COLORS[i] & 0xffffff) | (200 << 24)));
+    BEST_PATHS[i].drawPath();
+    strokeWeight(1);
+    
+    // draw the graph
+    if(GRAPHS[i].edges.length != 0 && DRAW_GRAPH)
+    {
+      stroke(ROBOT_COLORS[i]);
+      GRAPHS[i].drawGraph();
+    }
+    if(DRAW_STATES)
+    {
+      for(State s : VERTICES[i])
+      {
+        s.drawState();
+      }
+    }
+  }
+  // Draw information
+  if(DRAW_INFO)
+  {
+    fill(255,255,255,190);
+    stroke(255,255,255,210);
+    rect(0,0,225,50+75*N);
+  }
+  for(int i=0; i<N; i++)
+  {
+    if(DRAW_INFO)
+    {
+      fill(ROBOT_COLORS[i]);
+      stroke(ROBOT_COLORS[i]);
+      text(str(i)+") location: "+VERTICES[i][0].toString(), 0, 45+75*i);
+      text("    vertices: "+str(VERTICES[i].length), 0, 60+75*i);
+      text("    edges: "+str(VERTICES[i].length), 0, 75+75*i);
+      text("    path length: "+str(BEST_PATHS[i].vertices.length), 0, 90+75*i);
+      text("    goal: "+GOALS[i].toString(), 0, 105+75*i);
+      //VERTICES[i][0].drawState();
+      text("("+str(i)+")",VERTICES[i][0].position.x+5, VERTICES[i][0].position.y);
+    }
   }
   fill(0,255,0);
   stroke(0,255,0);
   text("Iteration: "+str(frame), 0, 15);
-  text("Finished robots: "+str(finishedRobots.length), 0, 30);
+  text("Finished robots: "+str(finishedRobots.length), 200, 15);
+  text("'D':debug, 'S':states, 'G':graph, 'I':info, 'P':pause", 0, 30);
   frame++;
 }

@@ -10,12 +10,21 @@ class Path
   }
   Path(State vertex)
   {
-    DEBOUT("Initializing path with vertex: "+vertex.toString());
+    //DEBOUT("Initializing path with vertex: "+vertex.toString());
     vertices = new State[1];
     vertices[0] = vertex;
     edges = new Edge[0];
   }
   
+  Path copy()
+  {
+    Path copy = new Path();
+    copy.vertices = new State[vertices.length];
+    copy.edges = new Edge[edges.length];
+    arrayCopy( vertices, copy.vertices);
+    arrayCopy( edges, copy.edges);
+    return copy;
+  }
   void pushByEdge(Edge edge)
   {
     //DEBOUT("Pushing path by edge");
@@ -75,17 +84,10 @@ class Path
   }
   void drawPath()
   {
-    strokeWeight(2);
     if(edges.length != 0)
       for(Edge e : edges)
       {
-        stroke(0,0,255);
         e.drawEdge();
-        
       }
-    else
-      print("Edges is empty\n");
-    
-    strokeWeight(1);
   }
 }

@@ -88,21 +88,93 @@ State[] findGoalVertices(State[] vertices)
   DEBOUT(str(CURRENT_ROBOT)+") has "+str(result.length)+" goal vertices");
   return result;
 }
+Path[] fromRootGeneratePaths(Graph g, State v, State[] discovered, Path[] paths, int j)
+{
+  discovered = (State[]) append(discovered, v);
+  Edge[] adjacentEdges = g.childEdges(v);
+  DEBOUT("Vertex has "+str(adjacentEdges.length)+" child edges");
+  for(int i=0; i<adjacentEdges.length; i++)
+  {
+    boolean d = false;
+    for(State s : discovered)
+    {
+      if(s.isEqual(adjacentEdges[i].v2))
+        d = true;
+    }
+    if(!d)
+    {
+      if(i == 0)
+      {
+        paths[i].vertices = (State[]) append(paths[i].vertices, adjacentEdges[i].v2);
+        paths[i].edges = (Edge[]) append(paths[i].edges, adjacentEdges[i]);
+        paths = fromRootGeneratePaths(g, adjacentEdges[i].v2, discovered, paths, i);
+      }
+      else
+      {
+        paths = (Path[]) append(paths, paths[j].copy());
+        j = paths.length - 1;
+        paths[j].vertices = (State[]) append(paths[j].vertices, adjacentEdges[i].v2);
+        paths[j].edges = (Edge[]) append(paths[j].edges, adjacentEdges[i]);
+        paths = fromRootGeneratePaths(g, adjacentEdges[i].v2, discovered, paths, i);
+      }
+    }
+  }
+  return paths;
+}
+Path[] fromLeafGeneratePaths(Graph g, State v, State[] discovered, Path[] paths, int j)
+{
+  discovered = (State[]) append(discovered, v);
+  State[] newDisc = new State[discovered.length];
+  arrayCopy(discovered, newDisc);
+  Edge[] adjacentEdges = g.parentEdges(v);
+  //DEBOUT("Vertex has "+str(adjacentEdges.length)+" parent edges");
+  for(int i=0; i<adjacentEdges.length; i++)
+  {
+    boolean d = false;
+    for(State s : discovered)
+    {
+      if(s.isEqual(adjacentEdges[i].v1))
+        d = true;
+    }
+    if(!d)
+    {
+      if(i == 0)
+      {
+        //DEBOUT("Extending path");
+        paths[i].vertices = (State[]) append(paths[i].vertices, adjacentEdges[i].v1);
+        paths[i].edges = (Edge[]) append(paths[i].edges, adjacentEdges[i]);
+        paths = fromLeafGeneratePaths(g, adjacentEdges[i].v1, discovered, paths, i);
+      }
+      else
+      {
+        //DEBOUT("Branching path");
+
+        j = paths.length - 1;
+        paths[j].vertices = (State[]) append(paths[j].vertices, adjacentEdges[i].v1);
+        paths[j].edges = (Edge[]) append(paths[j].edges, adjacentEdges[i]);
+        paths = fromLeafGeneratePaths(g, adjacentEdges[i].v1, newDisc, paths, i);
+      }
+    }
+  }
+  return paths;
+}
 Path[] pathGeneration(Graph graph)
 {
   //Depth-first search
   State[] goalVerts = findGoalVertices(graph.vertices);
   Path[] pathSet = new Path[0];
-  Path[] paths = new Path[0];
+  Path[] paths = new Path[1];
+  //paths[0] = new Path(graph.vertices[0]);
   for(State g : goalVerts)
   {
     paths = new Path[1];
     paths[0] = new Path(g);
-    paths = goalPaths(g, graph.edges, paths, 0);
+    paths = fromLeafGeneratePaths(graph, g, new State[0], paths, 0);
+    
     pathSet = (Path[]) concat(pathSet, paths); 
   }
-  DEBOUT("# of paths: "+str(paths.length));
-  return paths;
+  //DEBOUT("# of paths: "+str(pathSet.length));
+  return pathSet;
   /*
   State[] leaves = traceFromState(graph.vertices[0], graph.edges);
   for(State leaf : leaves)
@@ -211,6 +283,11 @@ boolean obstacleFree(State v1, State v2)
     return false;
   loadPixels();
   //TODO check the path between the points
+  for(Edge e : EDGES[CURRENT_ROBOT])
+  {
+    if(e.v1.isEqual(v1) && e.v2.isEqual(v2))
+      return false;
+  }
   if(map.pixels[int(v2.position.y)*width+int(v2.position.x)] == color(0,0,0))
     return false;
   return true;

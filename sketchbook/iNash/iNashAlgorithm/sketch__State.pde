@@ -17,6 +17,7 @@ class State
       rotation = new PVector(random(2)-1, random(2)-1);
       velocity = new PVector(0,0);
     }
+    rotation.normalize();
   }
   State(PVector _location, PVector _rotation)
   {
@@ -28,28 +29,19 @@ class State
   // State METHODS
   void drawState()
   {
-    ellipse(position.x, position.y,3,3);
+    ellipse(position.x, position.y, 1, 1);
   }
   String toString()
   {
     return "["+str(position.x)+", "+str(position.y)+"]";
   }
-  boolean equals(State s)
+  boolean isEqual(State s)
   {
-    if( position == null )
+    if(PVector.sub(position,s.position).equals(new PVector(0,0)))
     {
-      DEBOUT("Null position detected");
-    }
-    if( rotation == null )
-    {
-      DEBOUT("Null position detected");
-    }
-    if( velocity == null )
-    {
-      DEBOUT("Null position detected");
-    }
-    if(position.equals(s.position) && rotation.equals(s.rotation) && velocity.equals(s.velocity))
+      //DEBOUT("Equal state found at "+s.toString());
       return true;
+    }
     else
       return false;
   }
