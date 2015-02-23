@@ -10,6 +10,7 @@ class Path
   }
   Path(State vertex)
   {
+    DEBOUT("Initializing path with vertex: "+vertex.toString());
     vertices = new State[1];
     vertices[0] = vertex;
     edges = new Edge[0];
@@ -17,46 +18,47 @@ class Path
   
   void pushByEdge(Edge edge)
   {
+    //DEBOUT("Pushing path by edge");
+    vertices = (State[]) append(vertices, edge.v1);
     edges = (Edge[]) append(edges, edge);
-    vertices = (State[]) append(vertices, edge.v2);
   }
   void pushByState(State vertex)
   {
-    if(vertices == null)
+    //DEBOUT("Pushing path by state");
+    if(vertices.length == 0)
     {
-      print("Initializing path vertices\n");
-      vertices = new State[1];
-      vertices[0] = vertex;
-      return;
+      new Path(vertex);
     }
     else
+    {
+      if(edges.length == 0)
+      {
+        edges = new Edge[1];
+        edges[0] = new Edge(vertices[vertices.length-1],vertex);
+      }
+      else
+        edges = (Edge[]) append(edges, new Edge(vertices[vertices.length-1],vertex));
+        
       vertices = (State[]) append(vertices, vertex); 
-    // Null Check?
-    if(edges == null)
-    {
-      edges = new Edge[1];
-      edges[0] = new Edge(vertex, vertices[vertices.length-1]);
     }
-    else
-      edges = (Edge[]) append(edges, new Edge(vertex, vertices[vertices.length-1]));
   }
   boolean checkPath()
   {
-    if(vertices == null)
+    if(vertices.length == 0)
     {
-      print("ERROR: Path integrity. No vertices\n");
+      DEBOUT("ERROR: Path integrity. No vertices\n");
       return false;
     }
-    if(edges == null)
+    if(edges.length == 0)
     {
-      print("ERROR: Path integrity. No edges\n");
+      DEBOUT("ERROR: Path integrity. No edges\n");
       return false;
     }
     for(State v : vertices)
     {
       if(v == null)
       {
-        print("ERROR: Path integrity. Null vertex\n");
+        DEBOUT("ERROR: Path integrity. Null vertex\n");
         return false;
       }
     }
@@ -65,7 +67,7 @@ class Path
     {
       if(e == null)
       {
-        print("ERROR: Path integrity. Null edge\n");
+        DEBOUT("ERROR: Path integrity. Null edge\n");
         return false;
       }
     }
@@ -73,13 +75,17 @@ class Path
   }
   void drawPath()
   {
+    strokeWeight(2);
     if(edges.length != 0)
       for(Edge e : edges)
       {
         stroke(0,0,255);
         e.drawEdge();
+        
       }
     else
       print("Edges is empty\n");
+    
+    strokeWeight(1);
   }
 }

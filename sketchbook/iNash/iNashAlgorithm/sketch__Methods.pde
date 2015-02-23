@@ -1,7 +1,9 @@
 Graph extend(Graph prevGraph, State xrand)
 {
-  State[] vertices = prevGraph.vertices;
-  Edge[] edges = prevGraph.edges;
+  State[] vertices = new State[prevGraph.vertices.length]; 
+  arrayCopy(prevGraph.vertices, vertices);
+  Edge[] edges = new Edge[prevGraph.edges.length];
+  arrayCopy(prevGraph.edges, edges);
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
   if (obstacleFree(xNearest, xNew))
@@ -9,13 +11,13 @@ Graph extend(Graph prevGraph, State xrand)
     State[] Xnear = nearVertices(vertices, xNew, 15); //r = 15
     vertices = (State[]) append(vertices, xNew);
     edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
-    if( Xnear == null)
+    if( Xnear.length == 0)
       return prevGraph;
     for (State xNear : Xnear)
     {
       if (obstacleFree(xNear, xNew))
       {
-        edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+        //edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
     }
   }
@@ -50,6 +52,5 @@ Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State go
       break;
     }
   }
-  minPath.drawPath();
   return minPath;
 }

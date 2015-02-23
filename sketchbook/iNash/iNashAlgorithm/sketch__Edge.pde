@@ -15,7 +15,7 @@ class Edge
     line(v1.position.x, v1.position.y, halfway.x, halfway.y);
     stroke(255,0,0);
     line(halfway.x, halfway.y, v2.position.x, v2.position.y);
-    stroke(robotColors[currentRobot]);
+    stroke(ROBOT_COLORS[CURRENT_ROBOT]);
   }
   
   float cost()

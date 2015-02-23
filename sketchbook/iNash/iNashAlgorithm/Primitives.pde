@@ -8,12 +8,12 @@ State sample()
 }
 float pathCost(Path path, State goal)
 {
-  
-  return path.edges.length;
-}
-float edgeCost(Edge edge, State goal)
-{
-  return PVector.dist(edge.v2.position, goal.position) - PVector.dist(edge.v1.position, goal.position);
+  float cost = 0;
+  for(Edge e : path.edges)
+  {
+    cost += e.cost();
+  }
+  return cost;
 }
 boolean collisionFreePath(Path path, Path[] otherRobotPaths)
 {
@@ -28,35 +28,33 @@ boolean meetsPathConstraints(Path path)
 }
 Edge[] findParentEdges(State vertex, Edge[] edges)
 {
-  Edge[] children = new Edge[0];
+  Edge[] parents = new Edge[0];
   for(Edge e : edges)
   {
-    if(vertex.position.equals(e.v2.position))
+    if(vertex.position.x == e.v2.position.x && vertex.position.y == e.v2.position.y && vertex.rotation.x == e.v2.rotation.x && vertex.rotation.y == e.v2.rotation.y)
     {
-      if(children == null)
-      {
-        children = new Edge[1];
-        children[0] = e;
-      }
-      else
-      {
-        children = (Edge[]) append(children, e);
-      }
+        parents = (Edge[]) append(parents, e);
     }
   }
-  //print("# of parents: "+str(children.length)+"\n");
-  return children;
+  return parents;
 }
 Path[] goalPaths(State x, Edge[] edges, Path[] paths, int index)
 {
   Edge[] parents = findParentEdges(x, edges);
+  if(paths.length == 0)
+  {
+    DEBOUT("Starting new path tree");
+    paths = new Path[1];
+  }
   if(parents.length == 0)
   {
+    //DEBOUT("Index = "+str(index)+"; Paths length: "+str(paths.length));
     paths[index].pushByState(x);
     return paths;
   }
   for(int i=0; i<parents.length; i++)
   {
+    DEBOUT(x.toString()+" has "+str(parents.length)+" parents");
     if(i==0)
     {
       paths[index].pushByEdge(parents[i]);
@@ -64,6 +62,7 @@ Path[] goalPaths(State x, Edge[] edges, Path[] paths, int index)
     }
     else
     {
+      //DEBOUT("Branching goal path");
       paths = (Path[]) append(paths, paths[index]);
       paths[paths.length-1].pushByEdge(parents[i]);
       paths = goalPaths(parents[i].v1, edges, paths, paths.length-1);
@@ -71,20 +70,45 @@ Path[] goalPaths(State x, Edge[] edges, Path[] paths, int index)
   }
   return paths;
 }
+boolean inGoal(State s)
+{
+  if(PVector.dist(s.position,GOALS[CURRENT_ROBOT].position) <=  GOAL_RADII[CURRENT_ROBOT]/2)
+    return true;
+  else
+    return false;
+}
+State[] findGoalVertices(State[] vertices)
+{
+  State[] result = new State[0];
+  for(State v : vertices)
+  {
+    if(inGoal(v))
+      result = (State[]) append(result, v);
+  }
+  DEBOUT(str(CURRENT_ROBOT)+") has "+str(result.length)+" goal vertices");
+  return result;
+}
 Path[] pathGeneration(Graph graph)
 {
   //Depth-first search
-  Path[] paths = new Path[1];
-  paths[0] = new Path(goals[currentRobot]);
-  paths = goalPaths(goals[currentRobot], graph.edges, paths, 0); 
-  print("# of paths: "+str(paths.length)+"\n");
+  State[] goalVerts = findGoalVertices(graph.vertices);
+  Path[] pathSet = new Path[0];
+  Path[] paths = new Path[0];
+  for(State g : goalVerts)
+  {
+    paths = new Path[1];
+    paths[0] = new Path(g);
+    paths = goalPaths(g, graph.edges, paths, 0);
+    pathSet = (Path[]) concat(pathSet, paths); 
+  }
+  DEBOUT("# of paths: "+str(paths.length));
   return paths;
   /*
   State[] leaves = traceFromState(graph.vertices[0], graph.edges);
   for(State leaf : leaves)
   {
     // Draw the leaf
-    fill(robotColors[currentRobot]);
+    fill(ROBOT_COLORS[CURRENT_ROBOT]);
     leaf.drawState();
     
     if(paths == null)
@@ -124,8 +148,6 @@ State nearest(State[] vertices, State xrand)
 }
 State steer(State x, State y)
 {
-  if(PVector.dist(x.position, goals[currentRobot].position) <= goalRadii[currentRobot])
-    return goals[currentRobot];
   float dt = 10;
   State[] outcomes = dynamics( x, y, dt);
   if(outcomes.length == 0)
@@ -169,17 +191,11 @@ State[] dynamics(State x, State u, float dt)
 }
 State[] nearVertices(State[] vertices, State x, float r)
 {
-  State[] result = null;
+  State[] result = new State[0];
   for(State s : vertices)
   {
     if(PVector.dist(s.position, x.position) <= r)
     {
-      if(result == null)
-      {
-        result = new State[1];
-        result[0] = s;
-      }
-      else
         result = (State[]) append(result, s);
     }
   }

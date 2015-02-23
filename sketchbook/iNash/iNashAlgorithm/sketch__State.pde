@@ -32,6 +32,25 @@ class State
   }
   String toString()
   {
-    return "[ "+str(position.x)+", "+str(position.y)+"]";
+    return "["+str(position.x)+", "+str(position.y)+"]";
+  }
+  boolean equals(State s)
+  {
+    if( position == null )
+    {
+      DEBOUT("Null position detected");
+    }
+    if( rotation == null )
+    {
+      DEBOUT("Null position detected");
+    }
+    if( velocity == null )
+    {
+      DEBOUT("Null position detected");
+    }
+    if(position.equals(s.position) && rotation.equals(s.rotation) && velocity.equals(s.velocity))
+      return true;
+    else
+      return false;
   }
 }
