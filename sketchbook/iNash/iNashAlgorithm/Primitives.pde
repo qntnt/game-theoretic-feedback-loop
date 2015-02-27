@@ -15,10 +15,14 @@ float pathCost(Path path, State goal)
   }
   return cost;
 }
-boolean collisionFreePath(Path path, Path[] otherRobotPaths)
+boolean collisionFreePath(Path path, Path[] OTHER_ROBOT_PATHS)
 {
   // Check that the current path doesn't overlap with other robot paths
-  
+  for(Path p : OTHER_ROBOT_PATHS)
+  {
+    if(path.collides(p))
+      return false;
+  }
   return true;
 }
 boolean meetsPathConstraints(Path path)
@@ -37,38 +41,6 @@ Edge[] findParentEdges(State vertex, Edge[] edges)
     }
   }
   return parents;
-}
-Path[] goalPaths(State x, Edge[] edges, Path[] paths, int index)
-{
-  Edge[] parents = findParentEdges(x, edges);
-  if(paths.length == 0)
-  {
-    DEBOUT("Starting new path tree");
-    paths = new Path[1];
-  }
-  if(parents.length == 0)
-  {
-    //DEBOUT("Index = "+str(index)+"; Paths length: "+str(paths.length));
-    paths[index].pushByState(x);
-    return paths;
-  }
-  for(int i=0; i<parents.length; i++)
-  {
-    DEBOUT(x.toString()+" has "+str(parents.length)+" parents");
-    if(i==0)
-    {
-      paths[index].pushByEdge(parents[i]);
-      paths = goalPaths(parents[i].v1, edges, paths, index);
-    }
-    else
-    {
-      //DEBOUT("Branching goal path");
-      paths = (Path[]) append(paths, paths[index]);
-      paths[paths.length-1].pushByEdge(parents[i]);
-      paths = goalPaths(parents[i].v1, edges, paths, paths.length-1);
-    }
-  }
-  return paths;
 }
 boolean inGoal(State s)
 {
@@ -129,7 +101,7 @@ Path[] fromLeafGeneratePaths(Graph g, State v, State[] discovered, Path[] paths,
   Edge[] adjacentEdges = g.parentEdges(v);
   //DEBOUT("Vertex has "+str(adjacentEdges.length)+" parent edges");
   for(int i=0; i<adjacentEdges.length; i++)
-  {
+ {
     boolean d = false;
     for(State s : discovered)
     {
@@ -148,11 +120,21 @@ Path[] fromLeafGeneratePaths(Graph g, State v, State[] discovered, Path[] paths,
       else
       {
         //DEBOUT("Branching path");
-
         j = paths.length - 1;
-        paths[j].vertices = (State[]) append(paths[j].vertices, adjacentEdges[i].v1);
-        paths[j].edges = (Edge[]) append(paths[j].edges, adjacentEdges[i]);
-        paths = fromLeafGeneratePaths(g, adjacentEdges[i].v1, newDisc, paths, i);
+        // Checks if it is making a cycle and doesn't add the new edge and vertice if it is. Only works if it isn't checking for the goal state for now, i.e. there can still be a "cycle" when reaching the goal, though I've changed it around a few
+        // times and it appears to be working. It is pretty rare though, so it's tought to know for sure.
+        boolean add = true;
+        for(int cnt = 0;cnt < paths[j].edges.length;cnt++){
+          if(adjacentEdges[i].v2 == paths[j].edges[cnt].v2){
+            add = false;
+            break;
+          }
+        }
+        if(add == true){
+          paths[j].vertices = (State[]) append(paths[j].vertices, adjacentEdges[i].v1);
+          paths[j].edges = (Edge[]) append(paths[j].edges, adjacentEdges[i]);
+          paths = fromLeafGeneratePaths(g, adjacentEdges[i].v1, newDisc, paths, i);
+        }
       }
     }
   }
@@ -163,7 +145,7 @@ Path[] pathGeneration(Graph graph)
   //Depth-first search
   State[] goalVerts = findGoalVertices(graph.vertices);
   Path[] pathSet = new Path[0];
-  Path[] paths = new Path[1];
+  Path[] paths;
   //paths[0] = new Path(graph.vertices[0]);
   for(State g : goalVerts)
   {

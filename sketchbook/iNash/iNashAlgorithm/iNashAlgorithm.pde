@@ -1,4 +1,4 @@
-final int N = 2;
+final int N = 1;
 final int K = 200000;
 int frame = 0;
 PImage map;
@@ -6,10 +6,10 @@ State[][] VERTICES;  //[robot][vertex#]
 Edge[][] EDGES;  //[robot][edge#]
 Graph[] GRAPHS;  //[robot]
 State[] GOALS;  //[robot]
-int[] finishedRobots;  //[finish_order]
+int[] FINISHED_ROBOTS;  //[finish_order]
 Path[] BEST_PATHS;  // Previous best paths [robot]
 Path[] _BEST_PATHS;  // Current best paths [robot]
-Path[][] otherRobotPaths;  //[robot][path#]
+Path[][] OTHER_ROBOT_PATHS;  //[robot][path#]
 int k;
 int CURRENT_ROBOT; // For goal checking
 color[] ROBOT_COLORS;
@@ -39,8 +39,10 @@ void keyPressed() {
     DRAW_GRAPH = !DRAW_GRAPH;
     DRAW_STATES = false;
   }
-  if(k == 'R')
+  if(k == 'R') {
+    frame=0;
     setup();
+  }
   if(k == 'S')
   {
     DRAW_STATES = !DRAW_STATES;
@@ -60,10 +62,10 @@ void setup()
   EDGES = new Edge[N][1];
   GRAPHS = new Graph[N];
   GOALS = new State[N];
-  finishedRobots = new int[0];
+  FINISHED_ROBOTS = new int[0];
   BEST_PATHS = new Path[N];
   _BEST_PATHS = new Path[N];
-  otherRobotPaths = new Path[N][N];
+  OTHER_ROBOT_PATHS = new Path[N][N];
   k=0;
   CURRENT_ROBOT = 0; 
   ROBOT_COLORS = new color[N];
@@ -108,7 +110,7 @@ void iNash()
       CURRENT_ROBOT = i;
       // Begin BOILERPLATE
       boolean inA = false;
-      for(int j :  finishedRobots)
+      for(int j :  FINISHED_ROBOTS)
       {
         if(i == j)
         {
@@ -123,7 +125,7 @@ void iNash()
         {
           if (inGoal(vertex))
           {
-            finishedRobots = append(finishedRobots, i);
+            FINISHED_ROBOTS = append(FINISHED_ROBOTS, i);
             break;
           }
         }
@@ -131,32 +133,32 @@ void iNash()
       inA = false;
     }
     
-    // Update all finishedRobots' previous BEST_PATHS
-    for (int i : finishedRobots)
+    // Update all FINISHED_ROBOTS' previous BEST_PATHS
+    for (int i : FINISHED_ROBOTS)
     {
       // Substitute underscore for tilde
       _BEST_PATHS[i] = BEST_PATHS[i]; 
     }
-    // Play the game for the current robots best path against all other finishedRobots' best paths
-    for(int j : finishedRobots)
+    // Play the game for the current robots best path against all other FINISHED_ROBOTS' best paths
+    for(int j : FINISHED_ROBOTS)
     {
       CURRENT_ROBOT = j;
-      // Reset the otherRobotPaths to all other robots' paths
-      otherRobotPaths[j] = new Path[0];
-      for(int l : finishedRobots)
+      // Reset the OTHER_ROBOT_PATHS to all other robots' paths
+      OTHER_ROBOT_PATHS[j] = new Path[0];
+      for(int l : FINISHED_ROBOTS)
       {
         if(l < j)
         {
-          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l].copy());
+          OTHER_ROBOT_PATHS[j] = (Path[]) append(OTHER_ROBOT_PATHS[j], BEST_PATHS[l].copy());
         }
         if(l > j)
         {
-          otherRobotPaths[j] = (Path[]) append(otherRobotPaths[j], BEST_PATHS[l].copy());
+          OTHER_ROBOT_PATHS[j] = (Path[]) append(OTHER_ROBOT_PATHS[j], BEST_PATHS[l].copy());
         }
       }
       
       // Play the game for the current robot vs all other robots' BEST_PATHS
-      BEST_PATHS[j] = betterResponse(GRAPHS[j], otherRobotPaths[j], BEST_PATHS[j], GOALS[j]);
+      BEST_PATHS[j] = betterResponse(GRAPHS[j], OTHER_ROBOT_PATHS[j], BEST_PATHS[j], GOALS[j]);
       DEBOUT(str(j)+") best path length: "+str(BEST_PATHS[j].edges.length));
     }
   }
@@ -227,7 +229,7 @@ void draw()
   fill(0,255,0);
   stroke(0,255,0);
   text("Iteration: "+str(frame), 0, 15);
-  text("Finished robots: "+str(finishedRobots.length), 200, 15);
+  text("Finished robots: "+str(FINISHED_ROBOTS.length), 200, 15);
   text("'D':debug, 'S':states, 'G':graph, 'I':info, 'P':pause", 0, 30);
   frame++;
 }

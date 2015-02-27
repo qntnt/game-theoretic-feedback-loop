@@ -12,29 +12,30 @@ Graph extend(Graph prevGraph, State xrand)
     DEBOUT("xNew is unset");
   if (obstacleFree(xNearest, xNew))
   {
-    State[] Xnear = nearVertices(vertices, xNew, 15); //r = 15
+    State[] Xnear = nearVertices(vertices, xNew, 11); //r = 15
     vertices = (State[]) append(vertices, xNew);
-    edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
+    //edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
     for (State xNear : Xnear)
     {
       if(xNear.position == null)
         DEBOUT("Some xNear is unset");
       if (obstacleFree(xNear, xNew))
       {
-        //edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+        //If the edge is consistent with path constraints, add the edge
+        edges = (Edge[]) append(edges, new Edge(xNear, xNew));
       }
     }
   }
   Graph ret = new Graph(vertices, edges);
   return ret;
 }
-Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State goal)
+Path betterResponse(Graph graph, Path[] OTHER_ROBOT_PATHS, Path bestPath, State goal)
 {
   Path[] paths = (Path[]) pathGeneration(graph);
   Path[] feasiblePaths = new Path[0];
   for(Path path : paths)
   {
-    if(collisionFreePath(path, otherRobotPaths) && meetsPathConstraints(path))
+    if(collisionFreePath(path, OTHER_ROBOT_PATHS) && meetsPathConstraints(path))
     {
       if(feasiblePaths.length == 0)
       {
@@ -45,7 +46,9 @@ Path betterResponse(Graph graph, Path[] otherRobotPaths, Path bestPath, State go
         feasiblePaths = (Path[]) append(feasiblePaths, path);
     }
   }
-  Path minPath = feasiblePaths[0];
+  Path minPath = new Path();
+  if(feasiblePaths.length > 0)
+    minPath = feasiblePaths[0];
   for(Path path : feasiblePaths)
   {
     if (pathCost(path, goal) < pathCost(minPath, goal))
