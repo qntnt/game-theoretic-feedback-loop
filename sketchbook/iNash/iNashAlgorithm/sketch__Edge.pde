@@ -36,4 +36,18 @@ class Edge
   {
     return v1.toString()+"->"+v2.toString();
   }
+  float slope()
+  {
+    return (v1.position.y - v2.position.y)/(v1.position.x - v2.position.x);
+  }
+  boolean crosses(Edge e)
+  {
+    float a1 = v1.position.y - slope()*v1.position.x;
+    float a2 = e.v1.position.y - e.slope()*e.v1.position.x;
+    float xi = - (a1-a2)/(slope() - e.slope());
+    if((v1.position.x - xi)*(xi - v2.position.x) >= 0)
+      return true;
+    else
+      return false;
+  }
 }

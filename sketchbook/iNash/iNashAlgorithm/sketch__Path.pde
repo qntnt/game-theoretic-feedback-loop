@@ -90,4 +90,20 @@ class Path
         e.drawEdge();
       }
   }
+  boolean collides(Path p)
+  {
+    // TODO Factor in traversal over time
+    for(Edge e : edges)
+    {
+      for(Edge e2 : p.edges)
+      {
+        if(e.crosses(e2))
+        {
+          DEBOUT(str(CURRENT_ROBOT)+") Path collides another path");
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
