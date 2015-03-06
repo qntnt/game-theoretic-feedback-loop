@@ -106,4 +106,14 @@ class Path
     }
     return false;
   }
+  
+  float cost(State goal)
+  {
+    float cost = 0;
+    for(Edge e : edges)
+    {
+      cost += e.cost();
+    }
+    return cost;
+  }
 }

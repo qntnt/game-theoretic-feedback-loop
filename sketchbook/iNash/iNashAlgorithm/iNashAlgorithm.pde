@@ -16,65 +16,24 @@ color[] ROBOT_COLORS;
 float[] GOAL_RADII;
 
 boolean DEBUG = false;
-boolean DRAW_GRAPH = false;
+boolean DRAW_GRAPH = true;
 boolean DRAW_INFO = false;
 boolean DRAW_STATES = false;
 
-String FEEDBACK_COST_FILENAME = "cost.log";
+DynamicsType DYNAMICS_TYPE = DynamicsType.DOUBLE_INTEGRATOR;
+
+String FEEDBACK_COST_FILENAME = "feedback_cost.log";
 String PATH_COST_FILENAME = "path_cost.log";
 
 PrintWriter FEEDBACK_COST_OUTPUT;
 PrintWriter PATH_COST_OUTPUT;
 
-void DEBOUT(String s)
-{
-  if(DEBUG)
-    print("("+minute()+"m"+second()+"s)    "+s+"\n");
-}
-
-void keyPressed() {
-  final int k = keyCode;
-
-  if (k == 'P')
-  {
-    if (looping)  
-    {
-      noLoop();
-    }
-    else          loop();
-  }
-  if(k == 'I')
-    DRAW_INFO = !DRAW_INFO;
-  if(k == 'G')
-  {
-    DRAW_GRAPH = !DRAW_GRAPH;
-    DRAW_STATES = false;
-  }
-  if(k == 'R') {
-    frame=0;
-    setup();
-  }
-  if(k == 'S')
-  {
-    DRAW_STATES = !DRAW_STATES;
-    DRAW_GRAPH = false;
-  }
-  if(k == 'D')
-    DEBUG = !DEBUG;
-  if(k == 'Q')
-  { 
-    FEEDBACK_COST_OUTPUT.flush();
-    PATH_COST_OUTPUT.flush();
-    FEEDBACK_COST_OUTPUT.close();
-    PATH_COST_OUTPUT.close();
-    exit();
-  }
-}
-
 void setup()
 {
+  // Setup data logging
   FEEDBACK_COST_OUTPUT = createWriter(FEEDBACK_COST_FILENAME);
   PATH_COST_OUTPUT = createWriter(PATH_COST_FILENAME);
+  
   frameRate(10000);
   map = loadImage("map1.png");
   size(map.width,map.height);
@@ -257,4 +216,52 @@ void draw()
   text("Finished robots: "+str(FINISHED_ROBOTS.length), 200, 15);
   text("'D':debug, 'S':states, 'G':graph, 'I':info, 'P':pause", 0, 30);
   frame++;
+}
+
+// HELPER FUNCTIONS
+
+void DEBOUT(String s)
+{
+  if(DEBUG)
+    print("("+minute()+"m"+second()+"s)    "+s+"\n");
+}
+
+void keyPressed() {
+  final int k = keyCode;
+
+  if (k == 'P')
+  {
+    if (looping)  
+    {
+      noLoop();
+    }
+    else          loop();
+  }
+  if(k == 'I')
+    DRAW_INFO = !DRAW_INFO;
+  if(k == 'G')
+  {
+    DRAW_GRAPH = !DRAW_GRAPH;
+    DRAW_STATES = false;
+  }
+  if(k == 'R') {
+    frame=0;
+    setup();
+  }
+  if(k == 'S')
+  {
+    DRAW_STATES = !DRAW_STATES;
+    DRAW_GRAPH = false;
+  }
+  if(k == 'D')
+    DEBUG = !DEBUG;
+  if(k == 'Q')
+  { 
+    FEEDBACK_COST_OUTPUT.flush();
+    PATH_COST_OUTPUT.flush();
+    FEEDBACK_COST_OUTPUT.close();
+    PATH_COST_OUTPUT.close();
+    save("final_env.png");
+    exit();
+  }
 }
