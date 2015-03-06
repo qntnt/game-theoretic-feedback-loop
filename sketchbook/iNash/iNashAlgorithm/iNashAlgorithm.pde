@@ -1,4 +1,4 @@
-final int N = 1;
+final int N = 4;
 final int K = 200000;
 int frame = 0;
 PImage map;
@@ -20,6 +20,12 @@ boolean DRAW_GRAPH = false;
 boolean DRAW_INFO = false;
 boolean DRAW_STATES = false;
 
+String FEEDBACK_COST_FILENAME = "cost.log";
+String PATH_COST_FILENAME = "path_cost.log";
+
+PrintWriter FEEDBACK_COST_OUTPUT;
+PrintWriter PATH_COST_OUTPUT;
+
 void DEBOUT(String s)
 {
   if(DEBUG)
@@ -30,8 +36,13 @@ void keyPressed() {
   final int k = keyCode;
 
   if (k == 'P')
-    if (looping)  noLoop();
+  {
+    if (looping)  
+    {
+      noLoop();
+    }
     else          loop();
+  }
   if(k == 'I')
     DRAW_INFO = !DRAW_INFO;
   if(k == 'G')
@@ -50,10 +61,20 @@ void keyPressed() {
   }
   if(k == 'D')
     DEBUG = !DEBUG;
+  if(k == 'Q')
+  { 
+    FEEDBACK_COST_OUTPUT.flush();
+    PATH_COST_OUTPUT.flush();
+    FEEDBACK_COST_OUTPUT.close();
+    PATH_COST_OUTPUT.close();
+    exit();
+  }
 }
 
 void setup()
 {
+  FEEDBACK_COST_OUTPUT = createWriter(FEEDBACK_COST_FILENAME);
+  PATH_COST_OUTPUT = createWriter(PATH_COST_FILENAME);
   frameRate(10000);
   map = loadImage("map1.png");
   size(map.width,map.height);
@@ -160,6 +181,10 @@ void iNash()
       // Play the game for the current robot vs all other robots' BEST_PATHS
       BEST_PATHS[j] = betterResponse(GRAPHS[j], OTHER_ROBOT_PATHS[j], BEST_PATHS[j], GOALS[j]);
       DEBOUT(str(j)+") best path length: "+str(BEST_PATHS[j].edges.length));
+      strokeWeight(2);
+      stroke(color((ROBOT_COLORS[j] & 0xffffff) | (200 << 24)));
+      BEST_PATHS[j].drawPath();
+      strokeWeight(1);
     }
   }
   k++;
@@ -186,9 +211,7 @@ void draw()
         PVector.mult(VERTICES[i][0].rotation, 6)).x, 
       PVector.add(VERTICES[i][0].position,
         PVector.mult(VERTICES[i][0].rotation, 6)).y);
-    stroke(color((ROBOT_COLORS[i] & 0xffffff) | (200 << 24)));
-    BEST_PATHS[i].drawPath();
-    strokeWeight(1);
+      strokeWeight(1);
     
     // draw the graph
     if(GRAPHS[i].edges.length != 0 && DRAW_GRAPH)
@@ -213,6 +236,8 @@ void draw()
   }
   for(int i=0; i<N; i++)
   {
+    FEEDBACK_COST_OUTPUT.println(str(i)+","+"TODO"+"\n");
+    PATH_COST_OUTPUT.println(str(i)+","+BEST_PATHS[i].vertices.length+"\n");
     if(DRAW_INFO)
     {
       fill(ROBOT_COLORS[i]);

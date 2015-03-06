@@ -231,6 +231,7 @@ State[] dynamics(State x, State u, float dt)
     tempState.rotation = PVector.fromAngle(temp);
     tempState.rotation.setMag(velocity*dt);
     tempState.position.add(tempState.rotation);
+    tempState.time = x.time + 1;
     if(obstacleFree(x, tempState))
       results = (State[]) append(results, tempState);
   }

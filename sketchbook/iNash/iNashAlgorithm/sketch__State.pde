@@ -3,19 +3,22 @@ class State
   // State MEMBERS
   PVector position;
   PVector rotation;
-  PVector velocity;
+  float time;
+  float cost;
   
   // State CONSTRUCTORS
   State()
   {
     position = new PVector(random(map.width), random(map.height));
     rotation = new PVector(random(2)-1, random(2)-1);
-    velocity = new PVector(0,0);
+    time = 0;
+    cost = 0;
     while(map.pixels[int(position.y)*map.width+int(position.x)] == color(0,0,0))
     {
       position = new PVector(random(map.width), random(map.height));
       rotation = new PVector(random(2)-1, random(2)-1);
-      velocity = new PVector(0,0);
+      time = 0;
+      cost = 0;
     }
     rotation.normalize();
   }
@@ -24,6 +27,13 @@ class State
     new State();
     position = _location;
     rotation = _rotation;
+  }
+  State(State s)
+  {
+    position = s.position.get();
+    rotation = s.rotation.get();
+    time = s.time;
+    cost = s.cost;
   }
   
   // State METHODS
@@ -44,5 +54,9 @@ class State
     }
     else
       return false;
+  }
+  float actionCost(float action)
+  {
+    return 0;
   }
 }

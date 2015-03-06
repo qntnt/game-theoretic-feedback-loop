@@ -45,8 +45,11 @@ class Edge
     float a1 = v1.position.y - slope()*v1.position.x;
     float a2 = e.v1.position.y - e.slope()*e.v1.position.x;
     float xi = - (a1-a2)/(slope() - e.slope());
-    if((v1.position.x - xi)*(xi - v2.position.x) >= 0)
+    if((v1.position.x - xi)*(xi - v2.position.x) >= 0 && abs(v1.time - e.v1.time) < 1 && abs(v2.time - e.v2.time) < 1)
+    {
+      DEBOUT("Edges cross at between times e1("+str(v1.time)+"), e2("+str(e.v1.time)+") and e1("+str(v2.time)+"), e2("+str(e.v2.time)+")");
       return true;
+    }
     else
       return false;
   }
