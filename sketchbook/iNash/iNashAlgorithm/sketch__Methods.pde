@@ -23,7 +23,11 @@ Graph extend(Graph prevGraph, State xrand)
       {
         //If the edge is consistent with path constraints, add the edge
         if(!xNear.isEqual(xNearest))
-          edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+          if(viableAction(xNear, xNew))
+          {
+            vertices = (State[]) append(vertices, calcVel(xNear, xNew));
+            edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+          }
       }
     }
   }

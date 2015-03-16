@@ -110,9 +110,14 @@ class Path
   float cost(State goal)
   {
     float cost = 0;
+    /*
     for(Edge e : edges)
     {
       cost += e.cost();
+    }*/
+    for(State s : vertices)
+    {
+      cost += s.cost;
     }
     return cost;
   }

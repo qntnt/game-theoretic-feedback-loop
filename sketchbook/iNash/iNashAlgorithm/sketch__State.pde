@@ -51,7 +51,7 @@ class State
   }
   boolean isEqual(State s)
   {
-    if(PVector.sub(position,s.position).equals(new PVector(0,0)))
+    if(PVector.sub(position,s.position).equals(new PVector(0,0)) && PVector.sub(velocity, s.velocity).equals(new PVector(0,0)))
     {
       //DEBOUT("Equal state found at "+s.toString());
       return true;
@@ -59,8 +59,11 @@ class State
     else
       return false;
   }
-  float actionCost(float action)
+  float actionCost(Action a)
   {
-    return 0;
+    float gamma = 0.95; // must be a value between 0 and 1
+    float actionCost = PVector.dist(PVector.add(PVector.add(a.acceleration, velocity),position), GOALS[CURRENT_ROBOT].position) - a.acceleration.mag();
+    actionCost += cost*gamma;
+    return actionCost;
   }
 }

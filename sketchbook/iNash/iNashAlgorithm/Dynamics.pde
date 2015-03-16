@@ -46,7 +46,7 @@ boolean dubinCheck(State x, State y)
 State[] doubleIntegrator(State x, State u, float dt, int resultNum)
 {
   // #TODO
-  int acceleration_range = 5;
+  int acceleration_range = 3;
   float[] acceleration_set = new float[0];
   for(int i=0; i<acceleration_range; i++)
   {
