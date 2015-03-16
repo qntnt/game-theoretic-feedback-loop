@@ -1,3 +1,29 @@
+int acceleration_range = 10;
+
+boolean viableAction(State s1, State s2)
+{
+  if(DYNAMICS_TYPE == DynamicsType.DOUBLE_INTEGRATOR)
+  {
+    PVector acc = PVector.mult(s1.velocity, -1);
+    acc.add(PVector.sub(s2.position, s1.position));
+    if(acc.mag() <= acceleration_range)
+    {
+      DEBOUT("viableAction() returned true.");
+      return true;
+    }
+    else 
+      return false;
+  }
+  return false;
+}
+State calcVel(State s1, State s2)
+{
+  State result = new State(s2.position, s2.rotation);
+  PVector acc = PVector.mult(s1.velocity, -1);
+  acc.add(PVector.sub(s2.position, s1.position));
+  result.velocity = PVector.add(s2.velocity, acc);
+  return result;
+}
 State[] dynamics(State x, State u, float dt)
 {
   //Dubin's car
@@ -46,7 +72,6 @@ boolean dubinCheck(State x, State y)
 State[] doubleIntegrator(State x, State u, float dt, int resultNum)
 {
   // #TODO
-  int acceleration_range = 3;
   float[] acceleration_set = new float[0];
   for(int i=0; i<acceleration_range; i++)
   {

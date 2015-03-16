@@ -107,7 +107,7 @@ class Path
     return false;
   }
   
-  float cost(State goal)
+  float cost()
   {
     float cost = 0;
     /*

@@ -16,30 +16,6 @@ boolean collisionFreePath(Path path, Path[] OTHER_ROBOT_PATHS)
   }
   return true;
 }
-boolean viableAction(State s1, State s2)
-{
-  if(DYNAMICS_TYPE == DynamicsType.DOUBLE_INTEGRATOR)
-  {
-    PVector acc = PVector.mult(s1.velocity, -1);
-    acc.add(PVector.sub(s2.position, s1.position));
-    if(acc.mag() <= 3)
-    {
-      DEBOUT("viableAction() returned true.");
-      return true;
-    }
-    else 
-      return false;
-  }
-  return false;
-}
-State calcVel(State s1, State s2)
-{
-  State result = new State(s2.position, s2.rotation);
-  PVector acc = PVector.mult(s1.velocity, -1);
-  acc.add(PVector.sub(s2.position, s1.position));
-  result.velocity = PVector.add(s2.velocity, acc);
-  return result;
-}
 boolean meetsPathConstraints(Path path)
 {
   //TODO

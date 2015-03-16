@@ -14,7 +14,10 @@ int k;
 int CURRENT_ROBOT; // For goal checking
 color[] ROBOT_COLORS;
 float[] GOAL_RADII;
+
+// For Feedback Loop
 Action[] ACTIONS;
+Path[] FEEDBACK_PATHS;
 
 boolean DEBUG = false;
 boolean DRAW_GRAPH = true;
@@ -51,6 +54,7 @@ void setup()
   FINISHED_ROBOTS = new int[0];
   BEST_PATHS = new Path[N];
   _BEST_PATHS = new Path[N];
+  FEEDBACK_PATHS = new Path[N];
   OTHER_ROBOT_PATHS = new Path[N][N];
   k=0;
   CURRENT_ROBOT = 0; 
@@ -66,6 +70,7 @@ void setup()
     _BEST_PATHS[i] = new Path();
     ROBOT_COLORS[i] = color(random(150),random(150),random(150),150);
     GOAL_RADII[i] = random(5)+15;
+    FEEDBACK_PATHS[i] = new Path();
   }
   k=1;
 }
@@ -109,6 +114,11 @@ void draw()
         s.drawState();
       }
     }
+    strokeWeight(2);
+    stroke(color((ROBOT_COLORS[i] & 0xffffff) | (200 << 24)));
+    BEST_PATHS[i].drawPath();
+    FEEDBACK_PATHS[i].drawPath();
+    strokeWeight(1);
   }
   // Draw information
   if(DRAW_INFO)
@@ -119,10 +129,10 @@ void draw()
   }
   for(int i=0; i<N; i++)
   {
-    if(k % 100 == 0)
+    if(k % 50 == 0)
     {
-      FEEDBACK_COST_OUTPUT.println(str(i)+","+"TODO"+"\n");
-      PATH_COST_OUTPUT.println(str(i)+","+BEST_PATHS[i].vertices.length+"\n");
+      FEEDBACK_COST_OUTPUT.println(str(i)+": "+FEEDBACK_PATHS[i].cost());
+      PATH_COST_OUTPUT.println(str(i)+": "+BEST_PATHS[i].cost());
     }
     if(DRAW_INFO)
     {

@@ -1,4 +1,4 @@
-
+d
 State[] findGoalVertices(State[] vertices)
 {
   State[] result = new State[0];

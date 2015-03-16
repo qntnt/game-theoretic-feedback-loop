@@ -61,7 +61,7 @@ class State
   }
   float actionCost(Action a)
   {
-    float gamma = 0.95; // must be a value between 0 and 1
+    float gamma = 1-(1/ ((float) N)); // must be a value between 0 and 1
     float actionCost = PVector.dist(PVector.add(PVector.add(a.acceleration, velocity),position), GOALS[CURRENT_ROBOT].position) - a.acceleration.mag();
     actionCost += cost*gamma;
     return actionCost;

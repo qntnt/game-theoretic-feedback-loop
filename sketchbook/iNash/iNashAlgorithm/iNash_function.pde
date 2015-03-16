@@ -74,10 +74,6 @@ void iNash()
       // Play the game for the current robot vs all other robots' BEST_PATHS
       BEST_PATHS[j] = betterResponse(GRAPHS[j], OTHER_ROBOT_PATHS[j], BEST_PATHS[j], GOALS[j]);
       DEBOUT(str(j)+") best path length: "+str(BEST_PATHS[j].edges.length));
-      strokeWeight(2);
-      stroke(color((ROBOT_COLORS[j] & 0xffffff) | (200 << 24)));
-      BEST_PATHS[j].drawPath();
-      strokeWeight(1);
     }
   }
   k++;

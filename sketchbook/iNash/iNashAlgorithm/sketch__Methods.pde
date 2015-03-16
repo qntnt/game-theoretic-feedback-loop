@@ -56,7 +56,7 @@ Path betterResponse(Graph graph, Path[] OTHER_ROBOT_PATHS, Path bestPath, State 
     minPath = feasiblePaths[0];
   for(Path path : feasiblePaths)
   {
-    if (path.cost(goal) < minPath.cost(goal))
+    if (path.cost() < minPath.cost())
     {
       minPath = path;
       break;
