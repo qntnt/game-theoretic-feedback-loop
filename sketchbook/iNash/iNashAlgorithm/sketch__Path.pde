@@ -2,7 +2,7 @@ class Path
 {
   State[] vertices;
   Edge[] edges;
-  
+
   Path()
   {
     vertices = new State[0];
@@ -15,7 +15,7 @@ class Path
     vertices[0] = vertex;
     edges = new Edge[0];
   }
-  
+
   Path copy()
   {
     Path copy = new Path();
@@ -34,47 +34,45 @@ class Path
   void pushByState(State vertex)
   {
     //DEBOUT("Pushing path by state");
-    if(vertices.length == 0)
+    if (vertices.length == 0)
     {
       new Path(vertex);
-    }
-    else
+    } else
     {
-      if(edges.length == 0)
+      if (edges.length == 0)
       {
         edges = new Edge[1];
-        edges[0] = new Edge(vertices[vertices.length-1],vertex);
-      }
-      else
-        edges = (Edge[]) append(edges, new Edge(vertices[vertices.length-1],vertex));
-        
-      vertices = (State[]) append(vertices, vertex); 
+        edges[0] = new Edge(vertices[vertices.length-1], vertex);
+      } else
+        edges = (Edge[]) append(edges, new Edge(vertices[vertices.length-1], vertex));
+
+      vertices = (State[]) append(vertices, vertex);
     }
   }
   boolean checkPath()
   {
-    if(vertices.length == 0)
+    if (vertices.length == 0)
     {
       DEBOUT("ERROR: Path integrity. No vertices\n");
       return false;
     }
-    if(edges.length == 0)
+    if (edges.length == 0)
     {
       DEBOUT("ERROR: Path integrity. No edges\n");
       return false;
     }
-    for(State v : vertices)
+    for (State v : vertices)
     {
-      if(v == null)
+      if (v == null)
       {
         DEBOUT("ERROR: Path integrity. Null vertex\n");
         return false;
       }
     }
-    
-    for(Edge e : edges)
+
+    for (Edge e : edges)
     {
-      if(e == null)
+      if (e == null)
       {
         DEBOUT("ERROR: Path integrity. Null edge\n");
         return false;
@@ -84,8 +82,8 @@ class Path
   }
   void drawPath()
   {
-    if(edges.length != 0)
-      for(Edge e : edges)
+    if (edges.length != 0)
+      for (Edge e : edges)
       {
         e.drawEdge();
       }
@@ -93,11 +91,11 @@ class Path
   boolean collides(Path p)
   {
     // TODO Factor in traversal over time
-    for(Edge e : edges)
+    for (Edge e : edges)
     {
-      for(Edge e2 : p.edges)
+      for (Edge e2 : p.edges)
       {
-        if(e.crosses(e2))
+        if (e.crosses(e2))
         {
           DEBOUT(str(CURRENT_ROBOT)+") Path collides another path");
           return true;
@@ -106,19 +104,20 @@ class Path
     }
     return false;
   }
-  
+
   float cost()
   {
     float cost = 0;
     /*
     for(Edge e : edges)
-    {
-      cost += e.cost();
-    }*/
-    for(State s : vertices)
+     {
+     cost += e.cost();
+     }*/
+    for (State s : vertices)
     {
       cost += s.cost;
     }
     return cost;
   }
 }
+

@@ -1,6 +1,6 @@
 enum DynamicsType
 {
-  DUBINS_CAR,
+  DUBINS_CAR, 
   DOUBLE_INTEGRATOR
 }
 

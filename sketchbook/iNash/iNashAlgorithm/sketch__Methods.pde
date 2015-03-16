@@ -4,29 +4,33 @@ Graph extend(Graph prevGraph, State xrand)
   arrayCopy(prevGraph.vertices, vertices);
   Edge[] edges = new Edge[prevGraph.edges.length];
   arrayCopy(prevGraph.edges, edges);
+  
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
-  if(xNearest == null)
+
+  if (xNearest == null)
     DEBOUT("xNearest is unset");
-  if(xNew == null)
+  if (xNew == null)
     DEBOUT("xNew is unset");
+
   if (obstacleFree(xNearest, xNew))
   {
-    State[] Xnear = nearVertices(vertices, xNew, 10); //r = 15
+    State[] Xnear = nearVertices(vertices, xNew, 11); //r = 15
     vertices = (State[]) append(vertices, xNew);
     edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
     for (State xNear : Xnear)
     {
-      if(xNear.position == null)
+      if (xNear.position == null)
         DEBOUT("Some xNear is unset");
       if (obstacleFree(xNear, xNew))
       {
         //If the edge is consistent with path constraints, add the edge
-        if(!xNear.isEqual(xNearest))
-          if(viableAction(xNear, xNew))
+        if (!xNear.isEqual(xNearest))
+          if (viableAction(xNear, xNew))
           {
-            vertices = (State[]) append(vertices, calcVel(xNear, xNew));
-            edges = (Edge[]) append(edges, new Edge(xNear, xNew));
+            State xNewer = calcVel(xNear, xNew);
+            vertices = (State[]) append(vertices, xNewer);
+            edges = (Edge[]) append(edges, new Edge(xNear, xNewer));
           }
       }
     }
@@ -38,23 +42,22 @@ Path betterResponse(Graph graph, Path[] OTHER_ROBOT_PATHS, Path bestPath, State 
 {
   Path[] paths = (Path[]) pathGeneration(graph);
   Path[] feasiblePaths = new Path[0];
-  for(Path path : paths)
+  for (Path path : paths)
   {
-    if(collisionFreePath(path, OTHER_ROBOT_PATHS) && meetsPathConstraints(path))
+    if (collisionFreePath(path, OTHER_ROBOT_PATHS) && meetsPathConstraints(path))
     {
-      if(feasiblePaths.length == 0)
+      if (feasiblePaths.length == 0)
       {
         feasiblePaths = new Path[1];
         feasiblePaths[0] = path;
-      }
-      else
+      } else
         feasiblePaths = (Path[]) append(feasiblePaths, path);
     }
   }
   Path minPath = new Path();
-  if(feasiblePaths.length > 0)
+  if (feasiblePaths.length > 0)
     minPath = feasiblePaths[0];
-  for(Path path : feasiblePaths)
+  for (Path path : feasiblePaths)
   {
     if (path.cost() < minPath.cost())
     {
@@ -64,3 +67,4 @@ Path betterResponse(Graph graph, Path[] OTHER_ROBOT_PATHS, Path bestPath, State 
   }
   return minPath;
 }
+

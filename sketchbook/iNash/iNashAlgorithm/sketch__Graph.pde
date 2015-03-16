@@ -2,7 +2,7 @@ class Graph
 {
   State[] vertices;
   Edge[] edges;
-  
+
   Graph()
   {
     vertices = new State[0];
@@ -17,7 +17,7 @@ class Graph
   }
   void drawGraph()
   {
-    for(Edge e : edges)
+    for (Edge e : edges)
     {
       e.drawEdge();
     }
@@ -25,9 +25,9 @@ class Graph
   Edge[] childEdges(State v)
   {
     Edge[] results = new Edge[0];
-    for(Edge e : edges)
+    for (Edge e : edges)
     {
-      if(e.v1.isEqual(v))
+      if (e.v1.isEqual(v))
         results = (Edge[]) append(results, e);
     }
     return results;
@@ -35,9 +35,9 @@ class Graph
   Edge[] parentEdges(State v)
   {
     Edge[] results = new Edge[0];
-    for(Edge e : edges)
+    for (Edge e : edges)
     {
-      if(e.v2.isEqual(v) && e.v2.position != null && v.position != null)
+      if (e.v2.isEqual(v) && e.v2.position != null && v.position != null)
       {
         results = (Edge[]) append(results, e);
         //DEBOUT("Parent edge: "+e.toString());
@@ -56,3 +56,4 @@ class Graph
     return copy;
   }
 }
+
