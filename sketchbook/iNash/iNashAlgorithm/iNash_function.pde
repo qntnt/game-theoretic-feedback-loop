@@ -1,6 +1,5 @@
 void iNash()
 {
-  DEBOUT("");
   DEBOUT("=== STARTING iNASH ===");
   if (!(k >= K))
   {
@@ -8,6 +7,7 @@ void iNash()
     for (int i=0; i<N; i++)
     {
       CURRENT_ROBOT = i;
+      DEBOUT(str(i)+") Verts:"+str(VERTICES[CURRENT_ROBOT].length)+" Edges:"+str(EDGES[CURRENT_ROBOT].length));
       // sample() in Primitives
       State xrand = sample(); 
 
@@ -72,7 +72,8 @@ void iNash()
 
       // Play the game for the current robot vs all other robots' BEST_PATHS
       BEST_PATHS[j] = betterResponse(GRAPHS[j], OTHER_ROBOT_PATHS[j], BEST_PATHS[j], GOALS[j]);
-      DEBOUT(str(j)+") best path length: "+str(BEST_PATHS[j].edges.length));
+      DEBOUT(str(j)+") best path edges #: "+str(BEST_PATHS[j].edges.length));
+      DEBOUT(str(j)+") best path verts #: "+str(BEST_PATHS[j].vertices.length));
     }
   }
   k++;

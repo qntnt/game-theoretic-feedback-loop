@@ -15,7 +15,7 @@ Edge[] findParentEdges(State vertex, Edge[] edges)
   Edge[] parents = new Edge[0];
   for (Edge e : edges)
   {
-    if (vertex.position.x == e.v2.position.x && vertex.position.y == e.v2.position.y && vertex.rotation.x == e.v2.rotation.x && vertex.rotation.y == e.v2.rotation.y)
+    if (vertex.isEqual(e.v2))
     {
       parents = (Edge[]) append(parents, e);
     }

@@ -15,7 +15,7 @@ Graph extend(Graph prevGraph, State xrand)
 
   if (obstacleFree(xNearest, xNew))
   {
-    State[] Xnear = nearVertices(vertices, xNew, 11); //r = 15
+    State[] Xnear = nearVertices(vertices, xNew, min((GAMMA*pow((log(k)/k),(1/VERTICES[CURRENT_ROBOT].length))), ETA)); //r = 15
     vertices = (State[]) append(vertices, xNew);
     edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
     for (State xNear : Xnear)
@@ -59,7 +59,7 @@ Path betterResponse(Graph graph, Path[] OTHER_ROBOT_PATHS, Path bestPath, State 
     minPath = feasiblePaths[0];
   for (Path path : feasiblePaths)
   {
-    if (path.cost() < minPath.cost())
+    if (path.iNashCost() < minPath.iNashCost())
     {
       minPath = path;
       break;

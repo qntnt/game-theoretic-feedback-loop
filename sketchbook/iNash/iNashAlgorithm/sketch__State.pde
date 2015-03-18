@@ -10,20 +10,25 @@ class State
   // State CONSTRUCTORS
   State()
   {
-    position = new PVector(random(map.width), random(map.height));
+    position = new PVector(floor(random(map.width)), floor(random(map.height)));
     rotation = new PVector(random(2)-1, random(2)-1);
     velocity = new PVector(0, 0);
     time = 0;
-    cost = 0;
+    cost = 1000;
     while (map.pixels[int (position.y)*map.width+int(position.x)] == color(0, 0, 0))
     {
-      position = new PVector(random(map.width), random(map.height));
+      position = new PVector(floor(random(map.width)),floor( random(map.height)));
       rotation = new PVector(random(2)-1, random(2)-1);
       velocity = new PVector(0, 0);
       time = 0;
       cost = 0;
     }
     rotation.normalize();
+  }
+  State(PVector _location)
+  {
+    new State();
+    position = _location.get();
   }
   State(PVector _location, PVector _rotation)
   {
@@ -43,7 +48,11 @@ class State
   // State METHODS
   void drawState()
   {
-    ellipse(position.x, position.y, 3, 3);
+    if(position.x % 1 != 0)
+      DEBOUT("Position.x not quantized");
+    if(position.y % 1 != 0)
+      DEBOUT("Position.y not quantized");
+    ellipse(int(position.x), int(position.y),1,1);
   }
   String toString()
   {
@@ -51,7 +60,7 @@ class State
   }
   boolean isEqual(State s)
   {
-    if (PVector.sub(position, s.position).equals(new PVector(0, 0)) && PVector.sub(velocity, s.velocity).equals(new PVector(0, 0)))
+    if (position.x == s.position.x && position.y == s.position.y && velocity.x == s.velocity.x && velocity.y == s.velocity.y)
     {
       //DEBOUT("Equal state found at "+s.toString());
       return true;
@@ -61,8 +70,11 @@ class State
   float actionCost(Action a)
   {
     float gamma = 1-(1/ ((float) N)); // must be a value between 0 and 1
-    float actionCost = PVector.dist(GOALS[CURRENT_ROBOT].position, PVector.add(PVector.add(a.acceleration, velocity), position));
-    actionCost += cost*gamma;
+    State Sprime = nearest(GRAPHS[CURRENT_ROBOT].vertices, new State(PVector.add(PVector.add(a.acceleration, velocity), position)));
+    //float actionCost = PVector.dist(GOALS[CURRENT_ROBOT].position, PVector.add(PVector.add(a.acceleration, velocity), position)); based on position to goal
+    // Sprime = closest node on the graph
+    float actionCost = pow(a.acceleration.mag(),2);
+    actionCost += Sprime.cost*gamma;
     return actionCost;
   }
 }

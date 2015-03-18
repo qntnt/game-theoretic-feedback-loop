@@ -13,9 +13,9 @@ class Edge
     color c = g.strokeColor;
     PVector halfway = v1.position.get();
     halfway.lerp(v2.position, 0.8);
-    line(v1.position.x, v1.position.y, halfway.x, halfway.y);
-    stroke(255, 0, 0);
-    line(halfway.x, halfway.y, v2.position.x, v2.position.y);
+    line(floor(v1.position.x), floor(v1.position.y), v2.position.x, v2.position.y);
+    stroke(255, 0, 0, 100);
+    line(floor(halfway.x), floor(halfway.y), floor(v2.position.x), floor(v2.position.y));
     stroke(c);
   }
 

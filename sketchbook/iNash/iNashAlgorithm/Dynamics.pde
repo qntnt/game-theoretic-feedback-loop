@@ -1,12 +1,10 @@
-int acceleration_range = 20;
-
 boolean viableAction(State s1, State s2)
 {
   if (DYNAMICS_TYPE == DynamicsType.DOUBLE_INTEGRATOR)
   {
     PVector acc = PVector.mult(s1.velocity, -1);
     acc.add(PVector.sub(s2.position, s1.position));
-    if (acc.mag() <= acceleration_range)
+    if (acc.mag()*dt <= (float) acceleration_mag*dt)
     {
       DEBOUT("viableAction() returned true.");
       return true;
@@ -75,19 +73,32 @@ State[] doubleIntegrator(State x, State u, float dt, int resultNum)
 {
   // #TODO
   float[] acceleration_set = new float[0];
+  float[] dir_set = new float[dir_range];
+  for(int i=0; i<dir_range; i++)
+  {
+    dir_set = (float[]) append(dir_set, 2*PI-(i*2*PI/dir_range));
+  }
   for (int i=0; i<acceleration_range; i++)
   {
-    acceleration_set = (float[]) append(acceleration_set, acceleration_range/2-acceleration_range + i);
+    acceleration_set = (float[]) append(acceleration_set, acceleration_mag*(((float)acceleration_range/2-(float)acceleration_range + i)/ (float)acceleration_range));
   }
-  State[] results = new State[acceleration_set.length];
-  PVector accDirection = PVector.sub(u.position, x.position);
+  State[] results = new State[acceleration_set.length*dir_set.length];
+  int count = 0;
   for (int i=0; i<acceleration_set.length; i++)
   {
-    State temp = new State(x);
-    accDirection.setMag(acceleration_set[i]);
-    temp.velocity.add(accDirection);
-    temp.position.add(temp.velocity);
-    results[i] = temp;
+    for(int j=0; j<dir_set.length; j++)
+    {
+      PVector accDirection = PVector.fromAngle(dir_set[j]);
+      State temp = new State(x);
+      accDirection.setMag(acceleration_set[i]);
+      accDirection.mult(dt);
+      temp.velocity.add(accDirection);
+      temp.position.add(temp.velocity);
+      temp.position.x = floor(temp.position.x);
+      temp.position.y = floor(temp.position.y);
+      results[count] = temp;
+      count++;
+    }
   }
   return results;
 }

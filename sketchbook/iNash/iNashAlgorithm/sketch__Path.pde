@@ -31,6 +31,12 @@ class Path
     vertices = (State[]) append(vertices, edge.v1);
     edges = (Edge[]) append(edges, edge);
   }
+  void appendByEdge(Edge edge)
+  {
+    //DEBOUT("Pushing path by edge");
+    vertices = (State[]) append(vertices, edge.v2);
+    edges = (Edge[]) append(edges, edge);
+  }
   void pushByState(State vertex)
   {
     //DEBOUT("Pushing path by state");
@@ -87,6 +93,9 @@ class Path
       {
         e.drawEdge();
       }
+    if(vertices.length != 0)
+      for(State s : vertices)
+        s.drawState();
   }
   boolean collides(Path p)
   {
@@ -116,6 +125,15 @@ class Path
     for (State s : vertices)
     {
       cost += s.cost;
+    }
+    return cost;
+  }
+  float iNashCost()
+  {
+    float cost = 0;
+    for(State s : vertices)
+    {
+      cost += PVector.dist(GOALS[CURRENT_ROBOT].position, s.position);
     }
     return cost;
   }

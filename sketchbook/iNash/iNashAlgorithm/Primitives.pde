@@ -1,7 +1,7 @@
 State sample()
 {
   State s = new State(
-  new PVector(random(map.width), random(map.height)), 
+  new PVector(floor(random(map.width)), floor(random(map.height))), 
   new PVector(random(2)-1, random(2)-1)
     );
   return s;
@@ -70,7 +70,6 @@ State nearest(State[] vertices, State xrand)
 }
 State steer(State x, State y)
 {
-  float dt = 10;
   State[] outcomes = dynamics( x, y, dt);
   if (outcomes.length == 0)
     return null;
@@ -94,11 +93,16 @@ boolean obstacleFree(State v1, State v2)
     return false;
   loadPixels();
   //TODO check the path between the points
-  for (Edge e : EDGES[CURRENT_ROBOT])
+  for(State s : VERTICES[CURRENT_ROBOT])
   {
-    if (e.v1.isEqual(v1) && e.v2.isEqual(v2))
+    if(v2.isEqual(s))
       return false;
   }
+  //for (Edge e : EDGES[CURRENT_ROBOT])
+  //{
+    //if (e.crosses(new Edge(v1, v2)))
+      //return false;
+  //}
   if (map.pixels[int(v2.position.y)*width+int(v2.position.x)] == color(0, 0, 0))
     return false;
   return true;

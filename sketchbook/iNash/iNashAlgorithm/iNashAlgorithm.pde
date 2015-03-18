@@ -15,42 +15,69 @@ int CURRENT_ROBOT; // For goal checking
 color[] ROBOT_COLORS;
 float[] GOAL_RADII;
 
+float freeArea()
+{
+  int count = 0;
+  loadPixels();
+  for(int i=0; i<map.width*map.height; i++)
+  {
+    if(map.pixels[i] == color(255,255,255))
+      count++;
+  }
+  return count;
+}
+int DIMENSION = 2;
+float GAMMA;
+float ETA = 4;
+float dt = 0.5;
+
 // For Feedback Loop
 Action[] ACTIONS;
 Path[] FEEDBACK_PATHS;
 
-boolean DEBUG = false;
+boolean DEBUG = true;
 boolean DRAW_GRAPH = false;
 boolean DRAW_INFO = false;
 boolean DRAW_STATES = false;
+boolean QUITTING = false;
 
 DynamicsType DYNAMICS_TYPE = DynamicsType.DOUBLE_INTEGRATOR;
 
 PrintWriter[] FEEDBACK_COST_OUTPUT = new PrintWriter[N];
+PrintWriter[] PATH_LENGTH_OUTPUT = new PrintWriter[N];
 PrintWriter[] PATH_COST_OUTPUT = new PrintWriter[N];
 PrintWriter[] VERTS_EDGES_OUTPUT = new PrintWriter[N];
+
+// Dynamics
+int acceleration_range = 1;
+int dir_range = 8;
+float acceleration_mag = 10;
 
 String timestamp;
 
 void setup()
 {
+  noSmooth();
   timestamp = year()+"-"+month()+"-"+day()+"-"+hour()+"-"+minute()+"-"+second();
   // Setup data logging
   for (int i=0; i<N; i++)
   {
     FEEDBACK_COST_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_feedback_cost.log");
     PATH_COST_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_path_cost.log");
+    PATH_LENGTH_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_path_length.log");
     VERTS_EDGES_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_verts_edges.log");
   }
 
   frameRate(100000);
   map = loadImage("map1.png");
   size(map.width, map.height);
+  background(255);
+  GAMMA = 2*(1+1/DIMENSION)*(freeArea()/1);
 
   ACTIONS = new Action[0];
-  for (int i=0; i<100; i++)
+  for(int i=0; i<50; i++)
   {
-    ACTIONS = (Action[]) append(ACTIONS, new Action(random(width), random(height)));
+    ACTIONS = (Action[]) append(ACTIONS, new Action());
   }
   VERTICES = new State[N][1];
   EDGES = new Edge[N][1];
@@ -74,7 +101,7 @@ void setup()
     BEST_PATHS[i] = new Path();
     _BEST_PATHS[i] = new Path();
     ROBOT_COLORS[i] = color(random(150), random(150), random(150), 150);
-    GOAL_RADII[i] = random(5)+15;
+    GOAL_RADII[i] = 10;
     FEEDBACK_PATHS[i] = new Path();
   }
   k=1;
@@ -82,11 +109,16 @@ void setup()
 
 void draw()
 {
+  DEBOUT("");
+  DEBOUT("Iteration: "+str(k));
   background(map);
 
   // REGION iNash Algorithm + Feedback loop
-  iNash();
-  feedbackLoop();
+  if(!QUITTING)
+  {
+    iNash();
+    feedbackLoop();
+  }
 
   // Draw robots
   for (int i=0; i<N; i++)
@@ -96,14 +128,14 @@ void draw()
     ellipse(GOALS[i].position.x, GOALS[i].position.y, GOAL_RADII[i], GOAL_RADII[i]);
     fill(ROBOT_COLORS[i]);
     stroke(ROBOT_COLORS[i]);
-    ellipse(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 6, 6);
+    //ellipse(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 6, 6);
     stroke(0);
-    strokeWeight(2);
-    line(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 
+    strokeWeight(1);
+    /*line(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 
     PVector.add(VERTICES[i][0].position, 
     PVector.mult(VERTICES[i][0].rotation, 6)).x, 
     PVector.add(VERTICES[i][0].position, 
-    PVector.mult(VERTICES[i][0].rotation, 6)).y);
+    PVector.mult(VERTICES[i][0].rotation, 6)).y);*/
     strokeWeight(1);
 
     // draw the graph
@@ -114,17 +146,17 @@ void draw()
     }
     if (DRAW_STATES)
     {
-      fill(0, 0, 0, 10);
-      stroke(0, 0, 0, 10);
+      fill(0, 0, 0, 100);
+      stroke(0, 0, 0, 100);
       for (State s : VERTICES[i])
       {
         s.drawState();
       }
     }
-    strokeWeight(2);
-    stroke(color((ROBOT_COLORS[i] & 0xffffff) | (200 << 24)));
+    strokeWeight(1);
+    stroke(color((complement(ROBOT_COLORS[i]) & 0xffffff) | (200 << 24)));
     BEST_PATHS[i].drawPath();
-    stroke(color((ROBOT_COLORS[i] | 0x000000) | (200 << 24)));
+    stroke(color((complement(ROBOT_COLORS[i]) & 0xffffff) | (200 << 24)));
     FEEDBACK_PATHS[i].drawPath();
     strokeWeight(1);
   }
@@ -139,9 +171,10 @@ void draw()
   {
     if (k % 20 == 0)
     {
-      FEEDBACK_COST_OUTPUT[i].println(FEEDBACK_PATHS[i].cost());
-      PATH_COST_OUTPUT[i].println(BEST_PATHS[i].cost());
-      VERTS_EDGES_OUTPUT[i].println("Verts:"+str(VERTICES[i].length)+" Edges:"+str(EDGES[i].length));
+      FEEDBACK_COST_OUTPUT[i].println(str(k)+", "+FEEDBACK_PATHS[i].cost());
+      PATH_COST_OUTPUT[i].println(str(k)+", "+BEST_PATHS[i].cost());
+      PATH_LENGTH_OUTPUT[i].println(str(k)+", "+BEST_PATHS[i].edges.length);
+      VERTS_EDGES_OUTPUT[i].println(str(k)+", "+"Verts:"+str(VERTICES[i].length)+" Edges:"+str(EDGES[i].length));
     }
     if (DRAW_INFO)
     {
@@ -154,13 +187,13 @@ void draw()
       text("    goal: "+GOALS[i].toString(), 0, 105+75*i);
       //VERTICES[i][0].drawState();
       text("("+str(i)+")", VERTICES[i][0].position.x+5, VERTICES[i][0].position.y);
+      fill(0, 255, 0);
+      stroke(0, 255, 0);
+      text("Iteration: "+str(frame), 0, 15);
+      text("Finished robots: "+str(FINISHED_ROBOTS.length), 200, 15);
     }
   }
-  fill(0, 255, 0);
-  stroke(0, 255, 0);
-  text("Iteration: "+str(frame), 0, 15);
-  text("Finished robots: "+str(FINISHED_ROBOTS.length), 200, 15);
-  text("'D':debug, 'S':states, 'G':graph, 'I':info, 'P':pause", 0, 30);
+  //text("'D':debug, 'S':states, 'G':graph, 'I':info, 'P':pause", 0, 30);
   frame++;
 }
 
