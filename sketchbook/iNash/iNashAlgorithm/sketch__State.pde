@@ -14,14 +14,14 @@ class State
     rotation = new PVector(random(2)-1, random(2)-1);
     velocity = new PVector(0, 0);
     time = 0;
-    cost = 1000;
+    cost = 1;
     while (map.pixels[int (position.y)*map.width+int(position.x)] == color(0, 0, 0))
     {
-      position = new PVector(floor(random(map.width)),floor( random(map.height)));
+      position = new PVector(floor(random(map.width)), floor( random(map.height)));
       rotation = new PVector(random(2)-1, random(2)-1);
       velocity = new PVector(0, 0);
       time = 0;
-      cost = 0;
+      cost = 1;
     }
     rotation.normalize();
   }
@@ -48,11 +48,11 @@ class State
   // State METHODS
   void drawState()
   {
-    if(position.x % 1 != 0)
+    if (position.x % 1 != 0)
       DEBOUT("Position.x not quantized");
-    if(position.y % 1 != 0)
+    if (position.y % 1 != 0)
       DEBOUT("Position.y not quantized");
-    ellipse(int(position.x), int(position.y),1,1);
+    ellipse(int(position.x), int(position.y), 1, 1);
   }
   String toString()
   {
@@ -69,11 +69,11 @@ class State
   }
   float actionCost(Action a)
   {
-    float gamma = 1-(1/ ((float) N)); // must be a value between 0 and 1
-    State Sprime = nearest(GRAPHS[CURRENT_ROBOT].vertices, new State(PVector.add(PVector.add(a.acceleration, velocity), position)));
+    float gamma = 1-(1/ ((float) GRAPHS[CURRENT_ROBOT].vertices.length)); // must be a value between 0 and 1
+    State Sprime = nearest(GRAPHS[CURRENT_ROBOT].vertices, new State(PVector.add(PVector.add(PVector.mult(a.acceleration, dt), velocity), position)));
     //float actionCost = PVector.dist(GOALS[CURRENT_ROBOT].position, PVector.add(PVector.add(a.acceleration, velocity), position)); based on position to goal
     // Sprime = closest node on the graph
-    float actionCost = pow(a.acceleration.mag(),2);
+    float actionCost = pow(a.acceleration.mag()*dt, 2);
     actionCost += Sprime.cost*gamma;
     return actionCost;
   }

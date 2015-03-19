@@ -93,8 +93,8 @@ class Path
       {
         e.drawEdge();
       }
-    if(vertices.length != 0)
-      for(State s : vertices)
+    if (vertices.length != 0)
+      for (State s : vertices)
         s.drawState();
   }
   boolean collides(Path p)
@@ -131,7 +131,7 @@ class Path
   float iNashCost()
   {
     float cost = 0;
-    for(State s : vertices)
+    for (State s : vertices)
     {
       cost += PVector.dist(GOALS[CURRENT_ROBOT].position, s.position);
     }

@@ -31,18 +31,7 @@ void keyPressed() {
   }
   if (k == 'R') {
     frame=0;
-    for (int i=0; i<N; i++)
-    {
-      FEEDBACK_COST_OUTPUT[i].flush();
-      PATH_COST_OUTPUT[i].flush();
-      PATH_LENGTH_OUTPUT[i].flush();
-      VERTS_EDGES_OUTPUT[i].flush();
-      FEEDBACK_COST_OUTPUT[i].close();
-      PATH_COST_OUTPUT[i].close();
-      PATH_LENGTH_OUTPUT[i].close();
-      VERTS_EDGES_OUTPUT[i].close();
-    }
-    save("output_"+timestamp+"/final_env.png");
+    flushClose();
     setup();
   }
   if (k == 'S')
@@ -55,16 +44,25 @@ void keyPressed() {
   if (k == 'Q')
   { 
     QUITTING = true;
+    flushClose();
+    exit();
+  }
+}
+void flushClose()
+{
+  
     for (int i=0; i<N; i++)
     {
       FEEDBACK_COST_OUTPUT[i].flush();
       PATH_COST_OUTPUT[i].flush();
       PATH_LENGTH_OUTPUT[i].flush();
       VERTS_EDGES_OUTPUT[i].flush();
+      VERT_COSTS_OUTPUT[i].flush();
       FEEDBACK_COST_OUTPUT[i].close();
       PATH_COST_OUTPUT[i].close();
       PATH_LENGTH_OUTPUT[i].close();
       VERTS_EDGES_OUTPUT[i].close();
+      VERT_COSTS_OUTPUT[i].close();
     }
     save("output_"+timestamp+"/final_env.png");
     DRAW_GRAPH = true;
@@ -74,16 +72,15 @@ void keyPressed() {
     DRAW_STATES = true;
     draw();
     save("output_"+timestamp+"/final_states.png");
-    exit();
-  }
 }
 color complement(color c)
 {
   float R = red(c);
   float G = green(c);
   float B = blue(c);
-  float minRGB = min(R,min(G,B));
-  float maxRGB = max(R,max(G,B));
+  float minRGB = min(R, min(G, B));
+  float maxRGB = max(R, max(G, B));
   float minPlusMax = minRGB + maxRGB;
   return color(minPlusMax-R, minPlusMax-G, minPlusMax-B);
 }
+

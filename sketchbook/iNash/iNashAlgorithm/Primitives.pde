@@ -21,17 +21,12 @@ boolean meetsPathConstraints(Path path)
   //TODO
   return true;
 }
-boolean inGoal(State s)
-{
-  if (PVector.dist(s.position, GOALS[CURRENT_ROBOT].position) <=  GOAL_RADII[CURRENT_ROBOT]/2)
-    return true;
-  else
-    return false;
-}
 Path[] pathGeneration(Graph graph)
 {
   //Depth-first search
-  State[] goalVerts = findGoalVertices(graph.vertices);
+  State[] goalVerts = {
+    GOALS[CURRENT_ROBOT]
+  };
   Path[] pathSet = new Path[0];
   Path[] paths;
   //paths[0] = new Path(graph.vertices[0]);
@@ -51,7 +46,7 @@ State[] nearVertices(State[] vertices, State x, float r)
   State[] result = new State[0];
   for (State s : vertices)
   {
-    if (PVector.dist(s.position, x.position) <= r)
+    if (PVector.dist(s.position, x.position) <= r && !s.isEqual(GOALS[CURRENT_ROBOT]))
     {
       result = (State[]) append(result, s);
     }
@@ -63,7 +58,7 @@ State nearest(State[] vertices, State xrand)
   State nearestState = vertices[0];
   for (State vertex : vertices)
   {
-    if (PVector.dist(vertex.position, xrand.position) < PVector.dist(nearestState.position, xrand.position))
+    if (PVector.dist(vertex.position, xrand.position) < PVector.dist(nearestState.position, xrand.position) && !vertex.isEqual(GOALS[CURRENT_ROBOT]))
       nearestState = vertex;
   }
   return nearestState;
@@ -93,15 +88,15 @@ boolean obstacleFree(State v1, State v2)
     return false;
   loadPixels();
   //TODO check the path between the points
-  for(State s : VERTICES[CURRENT_ROBOT])
+  for (State s : VERTICES[CURRENT_ROBOT])
   {
-    if(v2.isEqual(s))
+    if (v2.isEqual(s))
       return false;
   }
   //for (Edge e : EDGES[CURRENT_ROBOT])
   //{
-    //if (e.crosses(new Edge(v1, v2)))
-      //return false;
+  //if (e.crosses(new Edge(v1, v2)))
+  //return false;
   //}
   if (map.pixels[int(v2.position.y)*width+int(v2.position.x)] == color(0, 0, 0))
     return false;

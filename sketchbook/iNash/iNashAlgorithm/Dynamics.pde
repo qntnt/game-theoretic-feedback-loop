@@ -4,7 +4,7 @@ boolean viableAction(State s1, State s2)
   {
     PVector acc = PVector.mult(s1.velocity, -1);
     acc.add(PVector.sub(s2.position, s1.position));
-    if (acc.mag()*dt <= (float) acceleration_mag*dt)
+    if (acc.mag()*dt <= (float) ACTION_MAG*dt)
     {
       DEBOUT("viableAction() returned true.");
       return true;
@@ -71,34 +71,44 @@ boolean dubinCheck(State x, State y)
 }
 State[] doubleIntegrator(State x, State u, float dt, int resultNum)
 {
-  // #TODO
-  float[] acceleration_set = new float[0];
-  float[] dir_set = new float[dir_range];
-  for(int i=0; i<dir_range; i++)
-  {
-    dir_set = (float[]) append(dir_set, 2*PI-(i*2*PI/dir_range));
-  }
-  for (int i=0; i<acceleration_range; i++)
-  {
-    acceleration_set = (float[]) append(acceleration_set, acceleration_mag*(((float)acceleration_range/2-(float)acceleration_range + i)/ (float)acceleration_range));
-  }
-  State[] results = new State[acceleration_set.length*dir_set.length];
+//  // #TODO
+//  float[] acceleration_set = new float[0];
+//  float[] dir_set = new float[dir_range];
+//  for (int i=0; i<dir_range; i++)
+//  {
+//    dir_set = (float[]) append(dir_set, 2*PI-(i*2*PI/dir_range));
+//  }
+//  for (int i=0; i<acceleration_range; i++)
+//  {
+//    acceleration_set = (float[]) append(acceleration_set, ACTION_MAG*(((float)acceleration_range/2-(float)acceleration_range + i)/ (float)acceleration_range));
+//  }
+  State[] results = new State[ACTIONS.length];
+//  for (int i=0; i<acceleration_set.length; i++)
+//  {
+//    for (int j=0; j<dir_set.length; j++)
+//    {
+//      State temp = new State(x);
+//      PVector accDirection = PVector.fromAngle(dir_set[j]);
+//      accDirection.setMag(acceleration_set[i]);
+//      accDirection.mult(dt);
+//      temp.velocity.add(accDirection);
+//      temp.position.add(temp.velocity);
+//      temp.position.x = floor(temp.position.x);
+//      temp.position.y = floor(temp.position.y);
+//      results[count] = temp;
+//      count++;
+//    }
+//  }
   int count = 0;
-  for (int i=0; i<acceleration_set.length; i++)
+  for(Action a : ACTIONS)
   {
-    for(int j=0; j<dir_set.length; j++)
-    {
-      PVector accDirection = PVector.fromAngle(dir_set[j]);
-      State temp = new State(x);
-      accDirection.setMag(acceleration_set[i]);
-      accDirection.mult(dt);
-      temp.velocity.add(accDirection);
-      temp.position.add(temp.velocity);
-      temp.position.x = floor(temp.position.x);
-      temp.position.y = floor(temp.position.y);
-      results[count] = temp;
-      count++;
-    }
+    State temp = new State(x);
+    temp.velocity.add(PVector.mult(a.acceleration, dt));
+    temp.position.add(temp.velocity);
+    temp.position.x = floor(temp.position.x);
+    temp.position.y = floor(temp.position.y);
+    results[count] = temp;
+    count++;
   }
   return results;
 }

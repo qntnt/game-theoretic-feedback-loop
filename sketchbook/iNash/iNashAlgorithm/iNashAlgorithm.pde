@@ -19,9 +19,9 @@ float freeArea()
 {
   int count = 0;
   loadPixels();
-  for(int i=0; i<map.width*map.height; i++)
+  for (int i=0; i<map.width*map.height; i++)
   {
-    if(map.pixels[i] == color(255,255,255))
+    if (map.pixels[i] == color(255, 255, 255))
       count++;
   }
   return count;
@@ -31,6 +31,7 @@ float GAMMA;
 float ETA = 4;
 float dt = 0.5;
 
+float GOAL_COST = MIN_FLOAT;
 // For Feedback Loop
 Action[] ACTIONS;
 Path[] FEEDBACK_PATHS;
@@ -47,11 +48,12 @@ PrintWriter[] FEEDBACK_COST_OUTPUT = new PrintWriter[N];
 PrintWriter[] PATH_LENGTH_OUTPUT = new PrintWriter[N];
 PrintWriter[] PATH_COST_OUTPUT = new PrintWriter[N];
 PrintWriter[] VERTS_EDGES_OUTPUT = new PrintWriter[N];
+PrintWriter[] VERT_COSTS_OUTPUT = new PrintWriter[N];
 
 // Dynamics
 int acceleration_range = 1;
 int dir_range = 8;
-float acceleration_mag = 10;
+float ACTION_MAG = 20;
 
 String timestamp;
 
@@ -66,6 +68,7 @@ void setup()
     PATH_COST_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_path_cost.log");
     PATH_LENGTH_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_path_length.log");
     VERTS_EDGES_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_verts_edges.log");
+    VERT_COSTS_OUTPUT[i] = createWriter("output_"+timestamp+"/"+str(i)+"_vert_costs.log");
   }
 
   frameRate(100000);
@@ -75,10 +78,13 @@ void setup()
   GAMMA = 2*(1+1/DIMENSION)*(freeArea()/1);
 
   ACTIONS = new Action[0];
-  for(int i=0; i<50; i++)
+  for (int i=0; i<50; i++)
   {
-    ACTIONS = (Action[]) append(ACTIONS, new Action());
+    Action temp = new Action();
+    temp = temp.sample();
+    ACTIONS = (Action[]) append(ACTIONS,temp.sample()/*new Action()*/);
   }
+  
   VERTICES = new State[N][1];
   EDGES = new Edge[N][1];
   GRAPHS = new Graph[N];
@@ -98,10 +104,11 @@ void setup()
     EDGES[i] = new Edge[0];
     GRAPHS[i] = new Graph(VERTICES[i], EDGES[i]);
     GOALS[i] = new State();
+    GOALS[i].cost = GOAL_COST;
     BEST_PATHS[i] = new Path();
     _BEST_PATHS[i] = new Path();
     ROBOT_COLORS[i] = color(random(150), random(150), random(150), 150);
-    GOAL_RADII[i] = 10;
+    GOAL_RADII[i] = 5;
     FEEDBACK_PATHS[i] = new Path();
   }
   k=1;
@@ -114,9 +121,12 @@ void draw()
   background(map);
 
   // REGION iNash Algorithm + Feedback loop
-  if(!QUITTING)
+  if (!QUITTING)
   {
+    Action temp = new Action();
+    ACTIONS = (Action[]) append(ACTIONS, temp.sample());
     iNash();
+    DEBOUT("There are "+str(nearVertices(GRAPHS[0].vertices, GOALS[0], GOAL_RADII[0]).length)+" goal vertices");
     feedbackLoop();
   }
 
@@ -125,17 +135,17 @@ void draw()
   {
     fill(255, 0, 0);
     stroke(255, 0, 0);
-    ellipse(GOALS[i].position.x, GOALS[i].position.y, GOAL_RADII[i], GOAL_RADII[i]);
+    ellipse(GOALS[i].position.x, GOALS[i].position.y, GOAL_RADII[i]*2, GOAL_RADII[i]*2);
     fill(ROBOT_COLORS[i]);
     stroke(ROBOT_COLORS[i]);
     //ellipse(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 6, 6);
     stroke(0);
     strokeWeight(1);
     /*line(VERTICES[i][0].position.x, VERTICES[i][0].position.y, 
-    PVector.add(VERTICES[i][0].position, 
-    PVector.mult(VERTICES[i][0].rotation, 6)).x, 
-    PVector.add(VERTICES[i][0].position, 
-    PVector.mult(VERTICES[i][0].rotation, 6)).y);*/
+     PVector.add(VERTICES[i][0].position, 
+     PVector.mult(VERTICES[i][0].rotation, 6)).x, 
+     PVector.add(VERTICES[i][0].position, 
+     PVector.mult(VERTICES[i][0].rotation, 6)).y);*/
     strokeWeight(1);
 
     // draw the graph
@@ -146,10 +156,11 @@ void draw()
     }
     if (DRAW_STATES)
     {
-      fill(0, 0, 0, 100);
-      stroke(0, 0, 0, 100);
       for (State s : VERTICES[i])
       {
+        //DEBOUT(str(s.cost));
+        fill(2550*s.cost/GOAL_COST, 0, 0, 100);
+        stroke(2550*s.cost/GOAL_COST, 0, 0, 100);
         s.drawState();
       }
     }
@@ -175,6 +186,10 @@ void draw()
       PATH_COST_OUTPUT[i].println(str(k)+", "+BEST_PATHS[i].cost());
       PATH_LENGTH_OUTPUT[i].println(str(k)+", "+BEST_PATHS[i].edges.length);
       VERTS_EDGES_OUTPUT[i].println(str(k)+", "+"Verts:"+str(VERTICES[i].length)+" Edges:"+str(EDGES[i].length));
+      for(State s : GRAPHS[i].vertices)
+      {
+        VERT_COSTS_OUTPUT[i].println(str(k)+", "+str(s.cost));
+      }
     }
     if (DRAW_INFO)
     {

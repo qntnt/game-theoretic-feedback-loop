@@ -1,4 +1,11 @@
 
+boolean inGoal(State s)
+{
+  if (PVector.dist(s.position, GOALS[CURRENT_ROBOT].position) <=  GOAL_RADII[CURRENT_ROBOT])
+    return true;
+  else
+    return false;
+}
 State[] findGoalVertices(State[] vertices)
 {
   State[] result = new State[0];

@@ -4,7 +4,7 @@ Graph extend(Graph prevGraph, State xrand)
   arrayCopy(prevGraph.vertices, vertices);
   Edge[] edges = new Edge[prevGraph.edges.length];
   arrayCopy(prevGraph.edges, edges);
-  
+
   State xNearest = nearest(vertices, xrand);
   State xNew = steer(xNearest, xrand);
 
@@ -15,9 +15,25 @@ Graph extend(Graph prevGraph, State xrand)
 
   if (obstacleFree(xNearest, xNew))
   {
-    State[] Xnear = nearVertices(vertices, xNew, min((GAMMA*pow((log(k)/k),(1/VERTICES[CURRENT_ROBOT].length))), ETA)); //r = 15
+    State[] Xnear = nearVertices(vertices, xNew, min((GAMMA*pow((log(k)/k), (1/VERTICES[CURRENT_ROBOT].length))), ETA)); //r = 15
     vertices = (State[]) append(vertices, xNew);
     edges = (Edge[]) append(edges, new Edge(xNearest, xNew));
+    if (inGoal(xNew))
+    {
+      boolean alreadyDone = false;
+      for(int i : FINISHED_ROBOTS)
+      {
+        if( i == CURRENT_ROBOT )
+        {
+          alreadyDone = true;
+        }
+      }
+      if(!alreadyDone)
+      {
+          vertices = (State[]) append(vertices, GOALS[CURRENT_ROBOT]);
+          edges = (Edge[]) append(edges, new Edge(xNew, GOALS[CURRENT_ROBOT]));
+      }
+    }
     for (State xNear : Xnear)
     {
       if (xNear.position == null)
@@ -31,6 +47,24 @@ Graph extend(Graph prevGraph, State xrand)
             State xNewer = calcVel(xNear, xNew);
             vertices = (State[]) append(vertices, xNewer);
             edges = (Edge[]) append(edges, new Edge(xNear, xNewer));
+
+            
+            if (inGoal(xNewer))
+            {
+              boolean alreadyDone = false;
+              for(int i : FINISHED_ROBOTS)
+              {
+                if( i == CURRENT_ROBOT )
+                {
+                  alreadyDone = true;
+                }
+              }
+              if(!alreadyDone)
+              {
+                  vertices = (State[]) append(vertices, GOALS[CURRENT_ROBOT]);
+                  edges = (Edge[]) append(edges, new Edge(xNewer, GOALS[CURRENT_ROBOT]));
+              }
+            }
           }
       }
     }

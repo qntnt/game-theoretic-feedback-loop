@@ -14,9 +14,9 @@ void calculateCosts()
     CURRENT_ROBOT = i;
     for (State s : GRAPHS[i].vertices)
     {
-      float bestCost = s.cost;
-      if(inGoal(s))
-        s.cost = -10000;
+      float bestCost = MAX_FLOAT;
+      if (GOALS[i].isEqual(s))
+        s.cost = GOAL_COST;
       else
       {
         for (Action a : ACTIONS)
@@ -36,7 +36,9 @@ void findPaths()
   for (int i : FINISHED_ROBOTS)
   {
     CURRENT_ROBOT = i;
-    State[] goals = findGoalVertices(GRAPHS[i].vertices);
+    State[] goals = {
+      GOALS[i]
+    };
     if (goals.length == 0)
       return;
 
@@ -47,13 +49,12 @@ void findPaths()
     }
 
     int j = 0;
-    if(traceFromRoot)
+    if (traceFromRoot)
     {
       FEEDBACK_PATHS[i] = findPathFromRoot(VERTICES[i][0], new Path());
       DEBOUT("feedback path edges #: "+str(FEEDBACK_PATHS[i].edges.length));
       DEBOUT("feedback path verts #: "+str(FEEDBACK_PATHS[i].vertices.length));
-    }
-    else
+    } else
     {
       for (State g : goals)
       {
@@ -80,18 +81,14 @@ void findPaths()
 
 Path findPathFromGoal(State s, Path p)
 {
-  if(p.vertices.length == 0)
+  if (p.vertices.length == 0)
     p.vertices = (State[]) append(p.vertices, s);
-  Edge[] adjEdges = new Edge[0];
-  for (int i=0; i<GRAPHS[CURRENT_ROBOT].edges.length; i++)
-  {
-    if (GRAPHS[CURRENT_ROBOT].edges[i].v2.isEqual(s))
-      adjEdges = (Edge[]) append(adjEdges, GRAPHS[CURRENT_ROBOT].edges[i]);
-  }
+  Edge[] adjEdges = GRAPHS[CURRENT_ROBOT].parentEdges(s);
 
   if (adjEdges.length == 0)
   {
     //println("Path length: "+p.edges.length);
+    DEBOUT("No parent edges.");
     return p;
   }
 
@@ -102,17 +99,19 @@ Path findPathFromGoal(State s, Path p)
       bestEdge = e;
   }
   if (p == null)
-    print("P is null");
+    DEBOUT("P is null");
   if (bestEdge == null)
-    print("bestEdge is null");
+    DEBOUT("bestEdge is null");
+  //DEBOUT("Extending path");
   p.pushByEdge(bestEdge);
   return findPathFromGoal(bestEdge.v1, p);
 }
 
 Path findPathFromRoot(State s, Path p)
 {
-  if(p.vertices.length == 0)
+  if (p.vertices.length == 0)
     p.vertices = (State[]) append(p.vertices, s);
+
   Edge[] adjEdges = new Edge[0];
   for (int i=0; i<GRAPHS[CURRENT_ROBOT].edges.length; i++)
   {
@@ -122,7 +121,7 @@ Path findPathFromRoot(State s, Path p)
 
   if (adjEdges.length == 0)
   {
-    //println("Path length: "+p.edges.length);
+    //println("Path length: "+p.edges.length)
     return p;
   }
 
@@ -139,3 +138,4 @@ Path findPathFromRoot(State s, Path p)
   p.appendByEdge(bestEdge);
   return findPathFromRoot(bestEdge.v2, p);
 }
+

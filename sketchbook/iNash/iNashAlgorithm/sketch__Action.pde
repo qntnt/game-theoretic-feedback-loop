@@ -2,10 +2,6 @@ class Action
 {
   PVector acceleration; //action
 
-  Action(float w, float h)
-  {
-    acceleration = new PVector(w, h);
-  }
   Action(float mag)
   {
     acceleration = PVector.fromAngle(random(2*PI));
@@ -15,6 +11,16 @@ class Action
   {
     acceleration = PVector.fromAngle(random(2*PI));
     acceleration.setMag(10);
+  }
+  Action(float mag, float dir)
+  {
+    acceleration = PVector.fromAngle(dir);
+    acceleration.setMag(mag);
+  }
+  
+  Action sample()
+  {
+    return new Action(random(ACTION_MAG));
   }
 }
 
