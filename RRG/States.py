@@ -1,11 +1,8 @@
 from Vectors import Vector
 import random
 from graphics import *
-
-def sample(MAP):
-	temp = State(random.uniform(0,MAP['width']), random.uniform(0,MAP['height']))
-	return temp
-
+from math import floor
+	
 def closest(states, state):
 	xNearest = states[0]
 	for node in states:
@@ -23,11 +20,12 @@ class State:
 			self.position._get_x(),
 			self.position._get_y()
 		)
-		self.cost = 0
+		self.cost = 1
 	
 	def addToScene(self, window):
-		self.circle = Circle(self.point, 3)
+		self.circle = Circle(self.point, 1)
 		self.circle.setFill('blue')
+		self.circle.setOutline('blue')
 		self.circle.draw(window)	
 
 	def copy(self):
@@ -37,10 +35,10 @@ class State:
 		return self.position.get_distance_to(s.position)
 
 	def __key(self):
-		return (self.position, self.cost)
+		return (self.position)
 
 	def __eq__(self, rhs):
-		return self.position == rhs.position and self.cost == rhs.cost
+		return self.position == rhs.position
 
 	def __hash__(self):
 		return hash(self.__key())

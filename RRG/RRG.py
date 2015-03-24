@@ -1,49 +1,61 @@
 from networkx import *
 from States import *
 from math import log
-from graphics import *
 from Vectors import Vector
 from math import cos, sin, pi
+from graphics import *
 
-global GOAL, MAP, WINDOW, MAX_ITERATIONS, NUM_ROBOTS, CURREN_ROBOT, ITERATION, GRAPHS, GAMMA, MIN_RADIUS, DYTYPE
+global GOAL, MAP, MAX_ITERATIONS, NUM_ROBOTS, CURRENT_ROBOT, ITERATION
+global GRAPH, EDGES, GAMMA, MIN_RADIUS, DYTYPE, OBSTACLES, VERTICES, EDGES, GOAL_COST
 
-MAP = {'width':100, 'height':100}
+OBSTACLES = {}
+VERTICES = {}
+EDGES = {}
 NUM_ROBOTS = 1
 CURRENT_ROBOT = 0
 ITERATION = 1
 MAX_ITERATIONS = 1000
 GRAPHS = []
+EDGES = []
 GOAL_RADIUS = 10
 MIN_RADIUS = 10
 DYTYPE = 'point'
 GOALS = []
 
-def dfs():
-	return dfs_edges(GRAPHS[CURRENT_ROBOT], nodes(GRAPHS[CURRENT_ROBOT])[0])
+def initMap(picture_file):
+	global MAP, GAMMA
+	MAP = Image(Point(0,0), picture_file)
+	MAP.move(MAP.getWidth()/2, MAP.getHeight()/2)
+	freeArea = 0
+	for i in range(MAP.getWidth()):
+		for j in range(MAP.getHeight()):
+			if MAP.getPixel(i, j) != [0,0,0]:
+				freeArea += 1
+				temp = State(i, j)
+				OBSTACLES.update({temp: False})
+			else:
+				temp = State(i, j)
+				OBSTACLES.update({temp: True})
+	GAMMA = 2*pow(1+(1/2),(1/2))* pow((freeArea/1), (1/2))
 
-def init(width=100, height=100, robots=1, maxIterations=1000, dyType='point'):
-	global MAP, MAX_ITERATIONS, WINDOW, NUM_ROBOTS, CURRENT_ROBOT, ITERATION, GRAPHS, GAMMA, MIN_RADIUS, DYTYPE
-
-	MAP['width'] = width
-	MAP['height'] = height
+def init(width=100, height=100, robots=1, maxIterations=1000, dyType='point', goalCost=-1000, mapFile="./map.png"):
+	global MAP, MAX_ITERATIONS, WINDOW, NUM_ROBOTS, CURRENT_ROBOT, ITERATION, GRAPH, GAMMA, MIN_RADIUS, DYTYPE, GOAL_COST
+	global VERTICES
+	initMap(mapFile)
 	NUM_ROBOTS = robots
 	MAX_ITERATIONS = maxIterations
 	DYTYPE = dyType
 
-	WINDOW = GraphWin("Graph", MAP['width'], MAP['height'])
-	GAMMA = 2*(1+(1/len(MAP)))+(freeArea(MAP)/ITERATION)
 
 	for n in range(NUM_ROBOTS):
 		GRAPHS.append(Graph())
 		GOALS.append(sample(MAP))
-		addGoalToScene(GOALS[n])
+		GOALS[n].cost = goalCost
+		GOAL_COST = goalCost
 	for graph in GRAPHS:
 		temp = sample(MAP)
-		graph = graph.add_node(temp)
-		addToScene(temp)
-
-def freeArea(MAP):
-	return MAP['width']*MAP['height']
+		VERTICES.update({temp:1})
+	GRAPH = [VERTICES, EDGES]
 
 def output():
 	#draw()
@@ -51,60 +63,47 @@ def output():
 	return
 
 def rrg():
-	global GRAPHS, NUM_ROBOTS, CURRENT_ROBOT
+	global GRAPHS, NUM_ROBOTS, CURRENT_ROBOT, ITERATION, MAX_ITERATIONS
+	if ITERATION > MAX_ITERATIONS:
+		return
 	for n in range(NUM_ROBOTS):
 		CURRENT_ROBOT = n
-		GRAPHS[n] = extend(GRAPHS[n])
+		graph = extend()
+	ITERATION += 1
+	return graph
 		#print(nx.number_of_nodes(graph))
-
-def setup():
-	global GAMMA, MAP, ITERATION
-	GAMMA = 2*(1+(1/len(MAP)))+(freeArea(MAP)/ITERATION)
 	
-def extend(graph):
-	global MAP, ITERATION, NUM_ROBOTS, GAMMA, MIN_RADIUS
+def extend():
+	global MAP, ITERATION, NUM_ROBOTS, GAMMA, MIN_RADIUS, VERTICES, EDGES, GRAPH
 	xRand = sample(MAP)
-	xNearest = nearest(graph, xRand)
+	xNearest = nearest(GRAPH[0], xRand)
 	xNew = steer(xNearest, xRand)
 
 	if obstacleFree(xNearest, xNew): #TODO add if obstacleFree(xNearest, xNew):
+		card = len(nodes(graph))
 		xNear = nearVertices(
 			nodes(graph), 
 			xNew, 
-			min(GAMMA*pow((log(ITERATION)/ITERATION),(1/ITERATION)), MIN_RADIUS+1)
+			min(GAMMA*pow(log(card)/card,(1/2)), MIN_RADIUS+1)
 		)
-		graph.add_node(xNew)
+		VERTICES.update({xNew:1})
+		EDGES.update({xNearest:xNew})
+		#graph.add_node(xNew, cost=0)
+		#graph.add_edge(xNearest, xNew)
 		checkGoal(xNew)
-		addToScene(xNew)
 		for x in xNear:
-			if obstacleFree(x, xNew): #TODO add if obstacleFree(x, xNew):
-				graph.add_edge(x, xNew)
-				addToScene(x, xNew)
+			if obstacleFree(x, xNew) and x != xNearest: #TODO add if obstacleFree(x, xNew):
+				EDGES.update({x: xNew})
+				#graph.add_edge(x, xNew)
+	
+	graph = [VERTICES, EDGES]
 	return graph
 
 def checkGoal(s):
+	global VERTICES, EDGES
 	if s.dist(GOALS[CURRENT_ROBOT]) <= GOAL_RADIUS:
-		GRAPHS[CURRENT_ROBOT].add_node(GOALS[CURRENT_ROBOT])
-		GRAPHS[CURRENT_ROBOT].add_edge(s, GOALS[CURRENT_ROBOT])
-		addGoalToScene(GOALS[CURRENT_ROBOT])
-		addToScene(s, GOALS[CURRENT_ROBOT])
-
-def addGoalToScene(goal):
-	global WINDOW
-	goal.addToScene(WINDOW)
-	goal.circle.setFill('red')
-
-def addToScene(*args):
-	global WINDOW
-	if len(args) == 1:
-		args[0].addToScene(WINDOW)
-	elif len(args) == 2:
-		model = Line(args[0].point, args[1].point)
-		model.draw(WINDOW)
-	elif len(args) == 3:
-		model = Line(args[0].point, args[1].point)
-		model.setOutline(args[2])
-		model.draw(WINDOW)
+		VERTICES.update({GOALS[CURRENT_ROBOT]:GOAL_COST})
+		EDGES.update({s:GOALS[CURRENT_ROBOT]})
 
 # REGION PRIMITIVES
 
@@ -134,15 +133,31 @@ def dynamics(xNearest, radius=MIN_RADIUS):
 			temp = xNearest.copy()
 			direction = State(x, y)
 			direction.position *= radius
+			direction.position._set_x(float(floor(direction.position._get_x())))
+			direction.position._set_y(float(floor(direction.position._get_y())))
 			temp.position += direction.position
 			moveSet.append(temp)
 	return moveSet
-
+	
+def sample(MAP):
+	x = floor(random.uniform(0,MAP.getWidth()))
+	y = floor(random.uniform(0,MAP.getHeight()))
+	temp = State(x, y)
+	while not obstacleFree(temp, temp):
+		print("Sampled into obstacle")
+		x = floor(random.uniform(0,MAP.getWidth()))
+		y = floor(random.uniform(0,MAP.getHeight()))
+		temp = State(x, y)
+	return temp
+	
 def obstacleFree(s1, s2):
 	# for state in nx.nodes(GRAPHS[CURRENT_ROBOT]):
 	# 	if s1 == s2:
 	# 		return False
-	return True
-
+	if s1 not in OBSTACLES or s2 not in OBSTACLES:
+		return False
+		
+	return not OBSTACLES[s1] and not OBSTACLES[s2]
+	
 if __name__ == '__main__':
 	main()
