@@ -1,6 +1,10 @@
 #!/bin/bash
 
-$version = python --version
-if (( "$version" < "Python 3.4" ))
-then echo "You must have Python 3.4 or greater installed"
-else [ pip install networkx && pip install pillow ]
+py_v=$(python --version 2>&1)
+echo On $py_v
+echo Requires Python 3.4 or greater
+pip install networkx
+pip install numpy
+echo To install scikits, install NumPy on this system
+easy_install scikits
+curl -o RRG/graphics.py http://mcsp.wartburg.edu/zelle/python/graphics.py

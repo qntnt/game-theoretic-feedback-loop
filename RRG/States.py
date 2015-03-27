@@ -2,14 +2,7 @@ from Vectors import Vector
 import random
 from graphics import *
 from math import floor
-	
-def closest(states, state):
-	xNearest = states[0]
-	for node in states:
-		if node.dist(state) < xNearest.dist(state):
-			xNearest = node
-	return xNearest
-	
+
 class State:
 	def __init__(self, *args):
 		if len(args) == 2:
@@ -21,18 +14,21 @@ class State:
 			self.position._get_y()
 		)
 		self.cost = 1
-	
+
 	def addToScene(self, window):
 		self.circle = Circle(self.point, 1)
 		self.circle.setFill('blue')
 		self.circle.setOutline('blue')
-		self.circle.draw(window)	
+		self.circle.draw(window)
 
 	def copy(self):
 		return State(self.position.copy())
 
 	def dist(self, s):
 		return self.position.get_distance_to(s.position)
+
+	def __str__(self):
+		return '[ '+str(self.position._get_x())+', '+str(self.position._get_y())+' ]'
 
 	def __key(self):
 		return (self.position)
