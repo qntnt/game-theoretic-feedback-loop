@@ -1,69 +1,119 @@
 import feedback as fb
 import RRG as rrg
 import visualize as vis
+import matplotlib.image as mpimg
+from States import State
 from time import clock
 from math import floor
-from graphics import *
 from iCLAP_helpers import *
+from logging import *
+import bvp
 
 
-map = Image(Point(0,0), "./map.png")
-window = GraphWin("iCLAP", map.getWidth(), map.getHeight())
-map.draw(window)
+def main():
+	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations
 
-robots = []
-robotNum = 1
-graphs = []
-goals = []
-prevTime = clock()
-currTime = clock()
-iterations = 2000
+	maxIterations = int(input("How many iterations? "))
 
-rrg.initRRG(map, dyType='point', goalRadius=5, minRadius=5)
+	setup(maxIterations=maxIterations, robotPos={'x':10, 'y':10}, goalPos={'x':90, 'y':90})
 
-for i in range(robotNum):
-	robots.append({'finished':False, 'graph':rrg.initGraph(), 'goal':rrg.sample(map), 'path':{}})
-	robots[i]['root'] = next(iter(robots[i]['graph'].keys()))
-	robots[i]['goal'].cost = -100
-	x = floor(robots[i]['goal'].position._get_x())
-	y = floor(robots[i]['goal'].position._get_y())
-	goal = Circle(Point(x, y), 3)
-	goal.setFill('green')
-	goal.setOutline('green')
-	goal.draw(window)
-	x = floor(robots[i]['root'].position._get_x())
-	y = floor(robots[i]['root'].position._get_y())
-	start = Circle(Point(x, y), 3)
-	start.setFill('gray')
-	start.draw(window)
+	run_loop()
 
-for i in range(iterations):
-	print("Iteration: "+str(i))
+	cleanup()
+
+	vis.run(robots[0], env)
+
+def cleanup():
+	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations, logg
+
+	imgOutput = []
 	for robot in robots:
-		# Run RRG
-		robot['graph'] = rrg.run(robot['graph'], robot['goal'])
-
-		# Check if finished
-		if not robot['finished']:
-			robot = finishCheck(robot)
+		if robot['finished']:
+			robot['path'] = fb.pathFinding(robot['graph'], robot['root'], robot['goal'])
+			logg.write_path(iterations, robot['path'])
+			logg.write_states(robot['graph'])
 		else:
-			# Run feedback loop
-			robot['graph'] = fb.run(robot['graph'], robot['goal'])
-	prevTime = currTime
-	currTime = clock()
-	print("- Framerate: %f" % (1/(currTime-prevTime)))
-	print("- Time elapsed (s): %f" % clock())
+			logg.ERROR("Robot did not finish")
+	logg.close()
 
-imgOutput = []
-for robot in robots:
-	if robot['finished']:
-		robot['path'] = fb.pathFinding(robot['graph'], robot['root'], robot['goal'])
-		drawPath(robot['path'], window)
-		imgOutput.append(drawGraph(map, window, robot['graph'], robot['goal']))
-		imgOutput[0].save('./imgOutput.png')
-	else:
-		print("Robot did not finish")
+def output(i):
+	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations, logg
 
-vis.run(robots[0], map)
+	prevTime = curTime
+	curTime = clock()
+	if floor(curTime)-floor(prevTime) >= 1:
+		logg.OUTPUT("Iteration: "+str(i))
+		logg.OUTPUT("Time elapsed (s): %f" % clock(), lvl=2)
+		logg.VERBOUT("- Framerate: %f" % (1/(curTime-prevTime)))
 
-input('Press enter to close')
+def run_loop():
+	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations
+	for i in range(iterations):
+		for robot in robots:
+			# Run RRG
+			robot['graph'] = rrg.run(robot['graph'], robot['goal'])
+
+			# Check if finished
+			if not robot['finished']:
+				robot = finishCheck(robot)
+			else:
+				# Run feedback loop
+				robot['graph'] = fb.run(robot['graph'], robot['goal'])
+				robot['path'] = fb.pathFinding(robot['graph'], robot['root'], robot['goal'])
+				logg.write_path(i, robot['path'])
+		output(i)
+
+
+def setup(maxIterations=1000, robotPos=None, goalPos=None):
+	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations, logg
+
+	logg = logger()
+	for arg in sys.argv[-2:]:
+		if arg == "-v" or arg == "--verbose":
+			logg.verbose = True
+		if arg == "-d" or arg == "--debug":
+			logg.debug = True
+
+	fb.LOG = logg
+
+	env = mpimg.imread('env.png')
+
+	robots = []
+	robotNum = 1
+	graphs = []
+	goals = []
+	prevTime = clock()
+	curTime = clock()
+	iterations = maxIterations
+
+	rrg.initRRG(env, dyType='point', goalRadius=5, minRadius=5, logg=logg)
+
+	for i in range(robotNum):
+		robots.append({})
+		robots[i]['finished'] = False
+
+		logg.VERBOUT("Initializing robot")
+		if robotPos == None:
+			robots[i]['graph'] = rrg.initGraph()
+			robots[i]['root'] = next(iter(robots[i]['graph'].keys()))
+		else:
+			x = floor(robotPos['x'])
+			y = floor(robotPos['y'])
+			robots[i]['root'] = State(x, y)
+			robots[i]['graph'] = {robots[i]['root']:[]}
+		logg.VERBOUT("Initial state: "+str(robots[i]['root']), lvl=2)
+
+		logg.VERBOUT("Initializing goal")
+		if goalPos == None:
+			robots[i]['goal'] = rrg.sample(env)
+		else:
+			x = floor(goalPos['x'])
+			y = floor(goalPos['y'])
+			robots[i]['goal'] = State(x, y)
+		logg.VERBOUT("Initial goal: "+str(robots[i]['goal']), lvl=2)
+		robots[i]['path'] = {}
+
+		robots[i]['goal'].cost = -100
+
+if __name__ == '__main__':
+    main()

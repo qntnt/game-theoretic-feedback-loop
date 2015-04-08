@@ -1,7 +1,8 @@
 from networkx import *
 from functools import reduce
+from logging import *
 
-global GOALS, GOAL_WEIGHT, FINISHED_ROBOTS, ROBOT_TREES, GRAPHS, WIN
+global GOALS, GOAL_WEIGHT, FINISHED_ROBOTS, ROBOT_TREES, GRAPHS, WIN, LOG
 
 def run(graph, goal):
 	# Apply feedback loop to finished robots
@@ -9,12 +10,13 @@ def run(graph, goal):
 	return graph
 
 def applyCosts(graph, goal):
+	stateNum = len(graph.keys())
 	for state in list(graph.keys()):
 		if state != goal:
 			costs = []
 			for neighbor in graph[state]:
-				if state != neighbor:
-					costs.append(1/neighbor.dist(state) + (1-1/len(graph.keys()))*neighbor.cost)
+				if state != neighbor and neighbor.dist(state) and stateNum:
+					costs.append(1/neighbor.dist(state) + (1-1/stateNum)*neighbor.cost)
 			if len(costs) > 0:
 				state.cost = reduce(min, costs)
 	return graph
@@ -32,19 +34,22 @@ def applyCosts(graph, goal):
 def minState(states):
 	minState = states[0]
 	for neighbor in states:
-		if neighbor.cost < minState.cost:
+		if neighbor.cost <= minState.cost :
 			minState = neighbor
 	return minState
 
 
-
 def pathFinding(graph, root, goal):
-	path = {root:minState(graph[root])}
+	LOG.DEBOUT("Entering pathfinding")
+	path = {}
 	curState = root
-	while curState != goal:
-		curState = path[curState]
-		path[curState] = minState(graph[curState])
-		print(str(curState))
+	nextState = minState(graph[root])
+	while nextState != goal and path.get(nextState) != curState:
+		LOG.DEBOUT(str(curState)+"->"+str(nextState))
+		path[curState] = nextState
+		curState = nextState
+		nextState = minState(graph[nextState])
+	path[curState] = nextState
 	return path
 
 def totalCost(graph):

@@ -28,12 +28,14 @@ class State:
 		return self.position.get_distance_to(s.position)
 
 	def __str__(self):
-		return '[ '+str(self.position._get_x())+', '+str(self.position._get_y())+' ]'
+		return '[ '+str(self.position._get_x())+', '+str(self.position._get_y())+', '+str(self.cost)+' ]'
 
 	def __key(self):
 		return (self.position)
 
 	def __eq__(self, rhs):
+		if self is None or rhs is None:
+			return False
 		return self.position == rhs.position
 
 	def __hash__(self):

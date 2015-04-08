@@ -2,51 +2,57 @@ from networkx import *
 from States import *
 from math import log
 from math import cos, sin, pi
+from logging import *
+import matplotlib.image as mpimg
 
-global MAP, GAMMA, MIN_RADIUS, DYTYPE, OBSTACLES, GOAL_RADIUS, FREE_AREA, DIMENSION
+global MAP, GAMMA, MIN_RADIUS, DYTYPE, OBSTACLES, GOAL_RADIUS, FREE_AREA, DIMENSIONS, LOG
 
 # GRAPH is of the form { State : [] } where [] is a set of States it moves to
 
 def initMAP(map):
-	global MAP, GAMMA, OBSTACLES
+	global MAP, GAMMA, OBSTACLES, DIMENSIONS
 	MAP = map
+	DIMENSIONS = {'width': len(MAP), 'height':len(MAP[0])}
+	print(map)
 	OBSTACLES = {}
-	MAP.move(MAP.getWidth()/2, MAP.getHeight()/2)
 	FREE_AREA = 0
-	for i in range(MAP.getWidth()):
-		for j in range(MAP.getHeight()):
-			if MAP.getPixel(i, j) != [0,0,0]:
+	for i in range(len(MAP)):
+		for j in range(len(MAP[0])):
+			if MAP[i][j] != [0,0,0]:
 				FREE_AREA += 1
 				temp = State(i, j)
 				OBSTACLES.update({temp: False})
 			else:
 				temp = State(i, j)
 				OBSTACLES.update({temp: True})
-	GAMMA = 2*pow(1+(1/DIMENSION),(1/DIMENSION))*pow((FREE_AREA/DIMENSION),(1/DIMENSION))
+	GAMMA = 2*pow(1+(1/len(DIMENSIONS)),(1/len(DIMENSIONS)))*pow((FREE_AREA/len(DIMENSIONS)),(1/len(DIMENSIONS)))
 
-def initRRG(map, dyType='point', goalRadius=5, minRadius=10):
-	global DYTYPE, GOAL_RADIUS, MIN_RADIUS, DIMENSION
-	DIMENSION = 2
+def initRRG(map, dyType='point', goalRadius=5, minRadius=10, logg=logger()):
+	global DYTYPE, GOAL_RADIUS, MIN_RADIUS, LOG
+	LOG = logg
 	initMAP(map)
 	DYTYPE = dyType
 	GOAL_RADIUS=goalRadius
 	MIN_RADIUS=minRadius
 
-def initGraph():
+def initGraph(pos=None):
 	graph = {}
-	temp = sample(MAP)
-	graph[temp] = []
+	if pos == None:
+		temp = sample(MAP)
+		graph[temp] = []
+	else:
+		x = len(MAP)/pos['x']
+		y = len(MAP[0])/pos['y']
+		temp = State(x, y)
+		graph[temp] = []
 	return graph
 
 def output():
-	#draw()
-	#input("Press enter to close")
 	return
 
 def run(graph, goal):
 	graph = extend(graph, goal)
 	return graph
-		#print(nx.number_of_nodes(graph))
 
 def extend(graph, goal):
 	global MAP, GAMMA, MIN_RADIUS
@@ -119,13 +125,13 @@ def dynamics(xNearest):
 	return moveSet
 
 def sample(MAP):
-	x = floor(random.uniform(0,MAP.getWidth()))
-	y = floor(random.uniform(0,MAP.getHeight()))
+	x = floor(random.uniform(0,DIMENSIONS['width']))
+	y = floor(random.uniform(0,DIMENSIONS['height']))
 	temp = State(x, y)
 	while not obstacleFree(temp, temp):
-		print("Sampled into obstacle")
-		x = floor(random.uniform(0,MAP.getWidth()))
-		y = floor(random.uniform(0,MAP.getHeight()))
+		LOG.DEBOUT("Sampled into obstacle")
+		x = floor(random.uniform(0,DIMENSIONS['width']))
+		y = floor(random.uniform(0,DIMENSIONS['height']))
 		temp = State(x, y)
 	return temp
 
@@ -133,7 +139,7 @@ def obstacleFree(s1, s2):
 	# for state in nx.nodes(GRAPHS[CURRENT_ROBOT]):
 	# 	if s1 == s2:
 	# 		return False
-	if s1 not in OBSTACLES or s2 not in OBSTACLES:
+	if OBSTACLES.get(s1) is None or OBSTACLES.get(s2) is None:
 		return False
 
 	return not OBSTACLES[s1] and not OBSTACLES[s2]

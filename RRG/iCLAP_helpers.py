@@ -1,19 +1,24 @@
 from graphics import *
 from math import floor
 
+def pathCost(path):
+	cost = 0
+	for state in path.keys():
+		cost += state.cost
+	return cost
+
 def imgPlot(img, _x, _y, w, h, color):
-	x = _x
-	y = _y
+	x = int(_x)
+	y = int(_y)
 	for i in range(w):
 		for j in range(h):
 			img.setPixel(x+i-floor(w/2), y+j-floor(h/2), color)
 	return img
 
 def finishCheck(robot):
-	for state in list(robot['graph'].keys()):
-		if state == robot['goal']:
-			robot['finished'] = True
-			return robot
+	if robot['graph'].get(robot['goal']) is not None:
+		robot['finished'] = True
+		return robot
 	return robot
 
 def drawPath(path, window):
