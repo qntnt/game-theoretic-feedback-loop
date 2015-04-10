@@ -13,9 +13,14 @@ import bvp
 def main():
 	global robots, robotNum, env, graphs, goals, prevTime, curTime, iterations
 
-	maxIterations = int(input("How many iterations? "))
+	maxIterations = int(raw_input("How many iterations? [default = 1500]") or "1500")
+	env = str(raw_input("What is the environment file? [default = env.png]") or "./env.png")
+	x = int(raw_input("What is the robot's x coord? [default = 10]") or "10")
+	y = int(raw_input("What is the robot's y coord? [default = 10]") or "10")
+	gx = int(raw_input("What is the goal's x coord? [default = 10]") or "90")
+	gy = int(raw_input("What is the goal's y coord? [default = 10]") or "90")
 
-	setup(maxIterations=maxIterations, robotPos={'x':10, 'y':10}, goalPos={'x':90, 'y':90})
+	setup(maxIterations=maxIterations, robotPos={'x':x, 'y':y}, goalPos={'x':gx, 'y':gy})
 
 	run_loop()
 
@@ -76,7 +81,7 @@ def setup(maxIterations=1000, robotPos=None, goalPos=None):
 
 	fb.LOG = logg
 
-	env = mpimg.imread('env.png')
+	env = mpimg.imread(env)
 
 	robots = []
 	robotNum = 1
