@@ -1,13 +1,13 @@
-import feedback as fb
-import RRG as rrg
-import visualize as vis
+from planner import feedback as fb
+from extend import RRG as rrg
+from helper import visualize as vis
 import matplotlib.image as mpimg
-from States import State
+from env_classes.States import *
 from time import clock
 from math import floor
-from iCLAP_helpers import *
-from logging import *
-import bvp
+from helper.iClap_helpers import *
+from helper.logging import *
+import helper.bvp as bvp
 
 
 def main():

@@ -1,8 +1,8 @@
 from networkx import *
-from States import *
+from env_classes.States import *
 from math import log
 from math import cos, sin, pi
-from logging import *
+from helper.logging import *
 import matplotlib.image as mpimg
 
 global MAP, GAMMA, MIN_RADIUS, DYTYPE, OBSTACLES, GOAL_RADIUS, FREE_AREA, DIMENSIONS, LOG

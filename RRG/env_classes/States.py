@@ -1,6 +1,6 @@
 from Vectors import Vector
 import random
-from graphics import *
+from helper.graphics import *
 from math import floor
 
 class State:
